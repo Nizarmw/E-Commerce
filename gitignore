@@ -1,0 +1,15 @@
+# Ignore Go build files
+/go/bin/
+/go/pkg/
+/*.exe
+/*.out
+
+# Ignore environment files
+.env
+
+# Ignore dependencies (Go modules will handle them)
+vendor/
+
+# Ignore database-related files
+*.db
+*.sql
