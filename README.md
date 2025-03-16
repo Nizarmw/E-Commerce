@@ -56,12 +56,16 @@ Aplikasi mencakup fitur:
 
 | No | Kode | Nama Fungsi | Deskripsi |
 |----|------|------------|-----------|
-| 1  | EC-F-01 | Registrasi | Pengguna dapat membuat akun baru |
-| 2  | EC-F-02 | Login | Pengguna dapat masuk ke sistem |
-| 3  | EC-F-03 | Logout | Pengguna dapat keluar dari sistem |
-| 4  | EC-F-04 | CRUD Produk | Seller dapat menambahkan, mengedit, dan menghapus produk |
-| 5  | EC-F-05 | Checkout | Buyer dapat melakukan pembayaran |
-| 6  | EC-F-06 | Manajemen Pengguna | Admin dapat mengelola pengguna |
+| 1  | EC-F-01 | Registrasi Pengguna | Pengguna dapat membuat akun baru dengan email dan password |
+| 2  | EC-F-02 | Login Pengguna | Pengguna dapat masuk ke sistem dengan email dan password |
+| 3  | EC-F-03 | Logout Pengguna | Pengguna dapat keluar dari sistem dan token JWT akan dinonaktifkan |
+| 4a | EC-F-04a | Tambah Produk | Seller dapat menambahkan produk ke dalam katalog |
+| 4b | EC-F-04b | Edit Produk | Seller dapat mengedit informasi produk yang telah ditambahkan |
+| 4c | EC-F-04c | Hapus Produk | Seller dapat menghapus produk dari katalog |
+| 5  | EC-F-05 | Checkout & Pembayaran | Buyer dapat melakukan checkout dan menyelesaikan pembayaran |
+| 6a | EC-F-06a | Melihat Daftar Pengguna | Admin dapat melihat daftar pengguna dalam sistem |
+| 6b | EC-F-06b | Mengubah Peran Pengguna | Admin dapat mengubah peran pengguna (Buyer, Seller, Admin) |
+| 6c | EC-F-06c | Menonaktifkan Pengguna | Admin dapat menonaktifkan atau menghapus akun pengguna |
 
 ## Use Case Diagram
 Diagram ini mencakup skenario utama seperti registrasi, login, manajemen produk, transaksi, dan monitoring admin.
