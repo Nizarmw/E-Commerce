@@ -13,3 +13,5 @@ vendor/
 # Ignore database-related files
 *.db
 *.sql
+
+./e-commerce-frontend/node_modules/*
