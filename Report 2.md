@@ -34,21 +34,17 @@ Proyek ini adalah aplikasi web e-commerce yang dibangun dengan arsitektur micros
 | 2.1.3 | - Logout pengguna | ✅ Selesai | Implementasi di auth_controller.go (sederhana) |
 | 2.1.4 | - Profile management | ❌ Belum | Belum diimplementasikan |
 | 2.1.5 | - Role management | ❌ Belum | Model sudah ada tapi controller belum |
-
 | 2.2 | Product Service |
 | 2.2.1 | - Model produk | ✅ Selesai | Struktur model sudah dibuat |
 | 2.2.2 | - CRUD produk | ❌ Belum | Controller belum dibuat |
 | 2.2.3 | - Pencarian & filter | ❌ Belum | Belum diimplementasikan |
-
 | 2.3 | Order Service |
 | 2.3.1 | - Model order | ✅ Selesai | Struktur model sudah dibuat |
 | 2.3.2 | - Checkout process | ❌ Belum | Controller belum dibuat |
 | 2.3.3 | - Order history | ❌ Belum | Belum diimplementasikan |
-
 | 2.4 | Payment Service |
 | 2.4.1 | - Integrasi Midtrans | ❌ Belum | Belum diimplementasikan |
 | 2.4.2 | - Payment tracking | ❌ Belum | Belum diimplementasikan |
-
 | 2.5 | Review Service |
 | 2.5.1 | - Model review | ✅ Selesai | Struktur model sudah dibuat |
 | 2.5.2 | - CRUD review | ❌ Belum | Controller belum dibuat |
@@ -60,29 +56,23 @@ Proyek ini adalah aplikasi web e-commerce yang dibangun dengan arsitektur micros
 | 3.1 | Auth Pages |
 | 3.1.1 | - Login page | ✅ Selesai | Halaman dan fungsionalitas ada |
 | 3.1.2 | - Register page | ✅ Selesai | Halaman dan fungsionalitas ada |
-
 | 3.2 | Product Pages |
 | 3.2.1 | - Product listing | ✅ Selesai | Implementasi dasar sudah ada |
 | 3.2.2 | - Product details | ✅ Selesai | Halaman detail produk sudah ada |
 | 3.2.3 | - Search & filter UI | ❌ Belum | Frontend sudah ada tapi belum terintegrasi |
-
 | 3.3 | Shopping Cart |
 | 3.3.1 | - Cart management UI | ✅ Selesai | Menggunakan Redux untuk state cart |
 | 3.3.2 | - Cart persistence | ❌ Belum | Belum disinkronkan ke backend |
-
 | 3.4 | Checkout |
 | 3.4.1 | - Checkout form | ✅ Selesai | Form dasar sudah ada |
 | 3.4.2 | - Payment integration UI | ❌ Belum | Belum terintegrasi dengan gateway pembayaran |
-
 | 3.5 | User Dashboard |
 | 3.5.1 | - Dashboard UI | ✅ Selesai | Halaman dasar sudah dibuat |
 | 3.5.2 | - Order history | ❌ Belum | Belum diimplementasikan |
-
 | 3.6 | Admin Panel |
 | 3.6.1 | - User management | ✅ Selesai | UI untuk manajemen user sudah ada |
 | 3.6.2 | - Order management | ❌ Belum | Belum diimplementasikan |
 | 3.6.3 | - Product management | ❌ Belum | UI belum lengkap |
-
 | 3.7 | Seller Dashboard |
 | 3.7.1 | - Product management UI | ✅ Selesai | Halaman manajemen produk untuk seller sudah ada |
 
