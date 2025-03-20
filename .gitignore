@@ -1,0 +1,24 @@
+# Ignore Go build files
+/bin/
+/pkg/
+*.exe
+*.out
+
+# Ignore environment files
+.env
+
+# Ignore dependencies (Go modules will handle them)
+vendor/
+
+# Ignore database-related files
+*.db
+*.sql
+
+# Ignore Node.js dependencies
+ecommerce-frontend/node_modules/
+ecommerce-frontend/dist/
+ecommerce-frontend/build/
+
+# Ignore system files
+.DS_Store
+Thumbs.db

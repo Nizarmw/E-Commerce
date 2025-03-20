@@ -10,6 +10,6 @@ func SetupAuthRoutes(r *gin.Engine) {
 	{
 		authRoutes.POST("/register", controllers.Register)
 		authRoutes.POST("/login", controllers.Login)
-		authRoutes.POST("/logout", controllers.Logout) // Tambahkan ini
+		authRoutes.POST("/logout", controllers.Logout)
 	}
 }

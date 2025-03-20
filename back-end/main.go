@@ -3,11 +3,12 @@ package main
 import (
 	"log"
 
-	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 	"ecommerce-backend/config"
 	"ecommerce-backend/middlewares"
 	"ecommerce-backend/routes"
+
+	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -19,6 +20,7 @@ func main() {
 	r := gin.Default()
 
 	routes.SetupAuthRoutes(r)
+	routes.SetupProductRoutes(r)
 
 	r.GET("/profile", middlewares.AuthMiddleware(), func(c *gin.Context) {
 		userID, _ := c.Get("userID")
