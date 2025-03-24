@@ -1,6 +1,11 @@
 package models
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+	"gorm.io/gorm"
+)
 
 type Product struct {
 	ID          string    `gorm:"type:uuid;primaryKey"`
@@ -18,4 +23,7 @@ type Product struct {
 	Reviews  []Review `gorm:"foreignKey:ProductID"`
 }
 
-
+func (p *Product) BeforeCreate(tx *gorm.DB) (err error) {
+	p.ID = uuid.NewString()
+	return
+}

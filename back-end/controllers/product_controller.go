@@ -1,12 +1,13 @@
 package controllers
 
 import (
-	"net/http"
 	"ecommerce-backend/models"
 	"ecommerce-backend/services"
+	"fmt"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 )
-
 
 func CreateProduct(c *gin.Context) {
 	var product models.Product
@@ -17,6 +18,7 @@ func CreateProduct(c *gin.Context) {
 	}
 
 	userID, _ := c.Get("userID")
+	fmt.Println("User ID:", userID)
 	product.SellerID = userID.(string)
 
 	if err := services.CreateProduct(&product); err != nil {
