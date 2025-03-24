@@ -10,22 +10,25 @@ import (
 )
 
 func CreateProduct(product *models.Product) error {
+	fmt.Println("Creating product:", product)
+
 	if err := config.DB.Create(product).Error; err != nil {
 		fmt.Println("DB Error:", err)
 		return errors.New("failed to create product")
 	}
+
 	return nil
 }
 
 func GetProducts() ([]models.Product, error) {
 	var products []models.Product
-	err := config.DB.Find(&products).Error
+	err := config.DB.Preload("Category").Preload("Seller").Find(&products).Error
 	return products, err
 }
 
 func GetProductByID(id string) (*models.Product, error) {
 	var product models.Product
-	err := config.DB.First(&product, "id = ?", id).Error
+	err := config.DB.Preload("Category").Preload("Seller").First(&product, "id = ?", id).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, errors.New("product not found")
 	}

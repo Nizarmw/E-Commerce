@@ -3,9 +3,12 @@ package services
 import (
 	"ecommerce-backend/config"
 	"ecommerce-backend/models"
+
+	"github.com/google/uuid"
 )
 
 func CreateCategory(category *models.Category) error {
+	category.ID = uuid.New().String()
 	return config.DB.Create(category).Error
 }
 

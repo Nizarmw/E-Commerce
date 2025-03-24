@@ -3,7 +3,6 @@ package controllers
 import (
 	"ecommerce-backend/models"
 	"ecommerce-backend/services"
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -13,12 +12,21 @@ func CreateProduct(c *gin.Context) {
 	var product models.Product
 
 	if err := c.ShouldBindJSON(&product); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON format"})
 		return
 	}
 
-	userID, _ := c.Get("userID")
-	fmt.Println("User ID:", userID)
+	// Validasi categoryID tidak boleh kosong
+	if product.CategoryID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "CategoryID is required"})
+		return
+	}
+
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
 	product.SellerID = userID.(string)
 
 	if err := services.CreateProduct(&product); err != nil {

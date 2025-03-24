@@ -36,7 +36,6 @@ func GetCategories(c *gin.Context) {
 func DeleteCategory(c *gin.Context) {
 	categoryID := c.Param("id")
 
-	// Cek apakah kategori ada
 	if err := services.DeleteCategory(categoryID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete category"})
 		return

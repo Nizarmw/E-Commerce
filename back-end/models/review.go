@@ -10,6 +10,6 @@ type Review struct {
 	Comment   string    `gorm:"type:text"`
 	CreatedAt time.Time `gorm:"autoCreateTime"`
 
-	User    User    `gorm:"foreignKey:UserID"`
-	Product Product `gorm:"foreignKey:ProductID"`
+	User    User    `gorm:"foreignKey:UserID;references:ID"`
+	Product Product `gorm:"foreignKey:ProductID;references:ID"`
 }

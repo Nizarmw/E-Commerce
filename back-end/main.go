@@ -21,10 +21,16 @@ func main() {
 
 	routes.SetupAuthRoutes(r)
 	routes.SetupProductRoutes(r)
+	routes.SetupCategoryRoutes(r)
 
 	r.GET("/profile", middlewares.AuthMiddleware(), func(c *gin.Context) {
 		userID, _ := c.Get("userID")
-		c.JSON(200, gin.H{"message": "Protected profile", "userID": userID})
+		role, _ := c.Get("role")
+		c.JSON(200, gin.H{
+			"message": "Protected profile",
+			"userID":  userID,
+			"role":    role,
+		})
 	})
 
 	log.Println("Server running on port 8080...")
