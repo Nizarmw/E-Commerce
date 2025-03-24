@@ -14,10 +14,10 @@ vendor/
 *.db
 *.sql
 
-# Ignore Node.js dependencies
-ecommerce-frontend/node_modules/
-ecommerce-frontend/dist/
-ecommerce-frontend/build/
+#ignore front-end folder dependencies
+front-end/node_modules/
+front-end/dist/
+front-end/build/
 
 # Ignore system files
 .DS_Store
