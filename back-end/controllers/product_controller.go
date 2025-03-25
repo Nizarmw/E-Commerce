@@ -16,7 +16,6 @@ func CreateProduct(c *gin.Context) {
 		return
 	}
 
-	// Validasi categoryID tidak boleh kosong
 	if product.CategoryID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "CategoryID is required"})
 		return
@@ -34,7 +33,13 @@ func CreateProduct(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "Product created successfully", "product": product})
+	createdProduct, err := services.GetProductByID(product.ID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch created product"})
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"message": "Product created successfully", "product": createdProduct})
 }
 
 func GetProducts(c *gin.Context) {

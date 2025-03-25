@@ -18,8 +18,11 @@ type Product struct {
 	CreatedAt   time.Time `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt   time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 
-	Seller   *User     `gorm:"foreignKey:SellerID" json:"seller"`
-	Category *Category `gorm:"foreignKey:CategoryID" json:"category"`
+	SellerName   string `gorm:"-" json:"seller_name"`
+	CategoryName string `gorm:"-" json:"category_name"`
+
+	Seller   *User     `gorm:"foreignKey:SellerID;references:ID" json:"-"`
+	Category *Category `gorm:"foreignKey:CategoryID;references:ID" json:"-"`
 	Reviews  []Review  `gorm:"foreignKey:ProductID" json:"reviews"`
 }
 

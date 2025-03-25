@@ -20,19 +20,48 @@ func CreateProduct(product *models.Product) error {
 	return nil
 }
 
-func GetProducts() ([]models.Product, error) {
-	var products []models.Product
-	err := config.DB.Preload("Category").Preload("Seller").Find(&products).Error
-	return products, err
-}
-
 func GetProductByID(id string) (*models.Product, error) {
 	var product models.Product
-	err := config.DB.Preload("Category").Preload("Seller").First(&product, "id = ?", id).Error
+	err := config.DB.
+		Preload("Seller").
+		Preload("Category").
+		First(&product, "id = ?", id).Error
+
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, errors.New("product not found")
 	}
-	return &product, err
+
+	if product.Seller != nil {
+		product.SellerName = product.Seller.Name
+	}
+	if product.Category != nil {
+		product.CategoryName = product.Category.Name
+	}
+
+	return &product, nil
+}
+
+func GetProducts() ([]models.Product, error) {
+	var products []models.Product
+	err := config.DB.
+		Preload("Seller").
+		Preload("Category").
+		Find(&products).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	for i := range products {
+		if products[i].Seller != nil {
+			products[i].SellerName = products[i].Seller.Name
+		}
+		if products[i].Category != nil {
+			products[i].CategoryName = products[i].Category.Name
+		}
+	}
+
+	return products, nil
 }
 
 func UpdateProduct(product *models.Product) error {

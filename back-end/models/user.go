@@ -1,25 +1,27 @@
 package models
 
-import "time"
 import (
+	"time"
+
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
+
 type User struct {
-	ID        string    `gorm:"type:uuid;primaryKey"`
-	Name      string    `gorm:"size:255;not null"`
-	Email     string    `gorm:"size:255;unique;not null"`
-	Password  string    `gorm:"not null"`
-	Role      string    `gorm:"type:enum('admin','seller','buyer');default:'buyer'"`
+	ID        string    `gorm:"type:uuid;primaryKey" json:"id"`
+	Name      string    `gorm:"size:255;not null" json:"name"`
+	Email     string    `gorm:"size:255;unique;not null" json:"email"`
+	Password  string    `gorm:"not null" json:"-"`
+	Role      string    `gorm:"type:enum('admin','seller','buyer');default:'buyer'" json:"role"`
 	CreatedAt time.Time `gorm:"autoCreateTime"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime"`
 
-	Products []Product `gorm:"foreignKey:SellerID"`
-	Orders   []Order   `gorm:"foreignKey:UserID"`
-	Reviews  []Review  `gorm:"foreignKey:UserID"`
-}
-func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
-	u.ID = uuid.New().String() 
-	return
+	Products []Product `gorm:"foreignKey:SellerID;references:ID" json:"products"`
+	Orders   []Order   `gorm:"foreignKey:UserID;references:ID"`
+	Reviews  []Review  `gorm:"foreignKey:UserID;references:ID"`
 }
 
+func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
+	u.ID = uuid.New().String()
+	return
+}
