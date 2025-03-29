@@ -22,6 +22,7 @@ func main() {
 	routes.SetupAuthRoutes(r)
 	routes.SetupProductRoutes(r)
 	routes.SetupCategoryRoutes(r)
+	routes.RegisterReviewRoutes(r)
 
 	r.GET("/profile", middlewares.AuthMiddleware(), func(c *gin.Context) {
 		userID, _ := c.Get("userID")
