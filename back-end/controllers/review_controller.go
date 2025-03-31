@@ -14,13 +14,21 @@ func NewReviewController() *ReviewController {
 	return &ReviewController{}
 }
 
-// CreateReview handles review creation
 func (rc *ReviewController) CreateReview(c *gin.Context) {
 	var review models.Review
+
+	userID, exists := c.Get("userID")
+	if !exists {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
+		return
+	}
+
 	if err := c.ShouldBindJSON(&review); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
+
+	review.UserID = userID.(string)
 
 	if review.Rating < 1 || review.Rating > 5 {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Rating must be between 1 and 5"})
@@ -36,7 +44,6 @@ func (rc *ReviewController) CreateReview(c *gin.Context) {
 	c.JSON(http.StatusCreated, savedReview)
 }
 
-// GetReviews retrieves all reviews
 func (rc *ReviewController) GetReviews(c *gin.Context) {
 	reviews, err := services.GetReviews()
 	if err != nil {
@@ -47,7 +54,6 @@ func (rc *ReviewController) GetReviews(c *gin.Context) {
 	c.JSON(http.StatusOK, reviews)
 }
 
-// GetReviewsByProduct retrieves reviews for a specific product
 func (rc *ReviewController) GetReviewsByProduct(c *gin.Context) {
 	productID := c.Param("product_id")
 	reviews, err := services.GetReviewsByProductID(productID)
@@ -59,7 +65,6 @@ func (rc *ReviewController) GetReviewsByProduct(c *gin.Context) {
 	c.JSON(http.StatusOK, reviews)
 }
 
-// DeleteReview deletes a review by ID
 func (rc *ReviewController) DeleteReview(c *gin.Context) {
 	reviewID := c.Param("id")
 	if err := services.DeleteReview(reviewID); err != nil {
