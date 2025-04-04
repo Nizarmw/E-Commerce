@@ -25,6 +25,7 @@ func GetProductByID(id string) (*models.Product, error) {
 	err := config.DB.
 		Preload("Seller").
 		Preload("Category").
+		Preload("Reviews.User").
 		First(&product, "id = ?", id).Error
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -46,6 +47,7 @@ func GetProducts() ([]models.Product, error) {
 	err := config.DB.
 		Preload("Seller").
 		Preload("Category").
+		Preload("Reviews.User").
 		Find(&products).Error
 
 	if err != nil {
@@ -65,12 +67,15 @@ func GetProducts() ([]models.Product, error) {
 }
 
 func UpdateProduct(product *models.Product) error {
-	var existing models.Product
-	err := config.DB.First(&existing, "id = ?", product.ID).Error
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		return errors.New("product not found")
-	}
-	return config.DB.Save(product).Error
+	return config.DB.Model(&models.Product{}).
+		Where("id = ?", product.ID).
+		Updates(map[string]interface{}{
+			"name":        product.Name,
+			"description": product.Description,
+			"price":       product.Price,
+			"stock":       product.Stock,
+			"category_id": product.CategoryID,
+		}).Error
 }
 
 func DeleteProduct(product *models.Product) error {

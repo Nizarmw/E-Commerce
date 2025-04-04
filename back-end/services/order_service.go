@@ -81,7 +81,11 @@ func UpdateProductStock(productID string, quantity int) error {
 
 func GetOrderByID(id string) (*models.Order, error) {
 	var order models.Order
-	err := config.DB.Preload("OrderItems.Product").First(&order, "id = ?", id).Error
+	err := config.DB.
+		Preload("Users").
+		Preload("OrderItems.Product").
+		First(&order, "id = ?", id).Error
+
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, errors.New("order not found")
 	}
@@ -90,52 +94,41 @@ func GetOrderByID(id string) (*models.Order, error) {
 
 func GetOrdersByUserID(userID string) ([]models.Order, error) {
 	var orders []models.Order
-	err := config.DB.Preload("OrderItems.Product").Where("user_id = ?", userID).Find(&orders).Error
+	err := config.DB.
+		Preload("User").
+		Preload("OrderItems.Product").
+		Where("user_id = ?", userID).
+		Find(&orders).Error
 	return orders, err
 }
 
 func UpdateOrder(order *models.Order) error {
 	tx := config.DB.Begin()
 
-	// Pastikan ID order valid
 	if order.ID == "" {
 		return errors.New("order ID cannot be empty")
 	}
 
-	// Cari order yang akan diupdate
 	var existingOrder models.Order
-	if err := config.DB.Preload("OrderItems").First(&existingOrder, "id = ?", order.ID).Error; err != nil {
+	if err := tx.Preload("OrderItems").First(&existingOrder, "id = ?", order.ID).Error; err != nil {
 		tx.Rollback()
 		return errors.New("order not found")
 	}
 
-	// Perbarui informasi order (misalnya total price, status, dll)
-	existingOrder.TotalPrice = order.TotalPrice
+	// Aturan: Kalau status masih pending, jangan izinkan update item atau total price
+	if existingOrder.Status == "pending" {
+		tx.Rollback()
+		return errors.New("cannot update order while status is still pending. Please cancel and reorder")
+	}
+
+	// Update hanya diperbolehkan pada field tertentu seperti status (contoh: dari "processing" jadi "shipped")
 	existingOrder.Status = order.Status
 
-	// Update order jika ada perubahan
 	if err := tx.Save(&existingOrder).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
 
-	// Update OrderItems jika ada perubahan quantity atau produk
-	for _, updatedItem := range order.OrderItems {
-		var existingItem models.OrderItem
-		if err := config.DB.First(&existingItem, "id = ?", updatedItem.ID).Error; err != nil {
-			tx.Rollback()
-			return errors.New("order item not found")
-		}
-
-		// Update quantity dan harga pada item jika perlu
-		existingItem.Quantity = updatedItem.Quantity
-		existingItem.Price = updatedItem.Price
-
-		if err := tx.Save(&existingItem).Error; err != nil {
-			tx.Rollback()
-			return err
-		}
-	}
 	tx.Commit()
 	return nil
 }

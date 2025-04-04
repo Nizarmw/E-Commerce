@@ -18,12 +18,12 @@ type Product struct {
 	CreatedAt   time.Time `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt   time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 
-	SellerName   string `gorm:"-" json:"seller_name"`
-	CategoryName string `gorm:"-" json:"category_name"`
+	SellerName   string `gorm:"-" json:"-"`
+	CategoryName string `gorm:"-" json:"-"`
 
 	Seller   *User     `gorm:"foreignKey:SellerID;references:ID" json:"-"`
 	Category *Category `gorm:"foreignKey:CategoryID;references:ID" json:"-"`
-	Reviews  []Review  `gorm:"foreignKey:ProductID" json:"reviews"`
+	Reviews  []Review  `gorm:"foreignKey:ProductID" json:"-"`
 }
 
 func (p *Product) BeforeCreate(tx *gorm.DB) (err error) {

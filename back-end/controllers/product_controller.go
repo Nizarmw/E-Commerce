@@ -63,29 +63,40 @@ func GetProductByID(c *gin.Context) {
 
 func UpdateProduct(c *gin.Context) {
 	id := c.Param("id")
-	product, err := services.GetProductByID(id)
+
+	existingProduct, err := services.GetProductByID(id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "Product not found"})
 		return
 	}
 
 	userID, _ := c.Get("userID")
-	if product.SellerID != userID.(string) {
+	if existingProduct.SellerID != userID.(string) {
 		c.JSON(http.StatusForbidden, gin.H{"error": "You are not authorized to update this product"})
 		return
 	}
 
-	if err := c.ShouldBindJSON(product); err != nil {
+	var updateData models.Product
+	if err := c.ShouldBindJSON(&updateData); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	if err := services.UpdateProduct(product); err != nil {
+	existingProduct.Name = updateData.Name
+	existingProduct.Description = updateData.Description
+	existingProduct.Price = updateData.Price
+	existingProduct.Stock = updateData.Stock
+	existingProduct.CategoryID = updateData.CategoryID
+
+	if err := services.UpdateProduct(existingProduct); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update product"})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"message": "Product updated successfully", "product": product})
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Product updated successfully",
+		"product": existingProduct,
+	})
 }
 
 func DeleteProduct(c *gin.Context) {

@@ -16,9 +16,9 @@ type User struct {
 	CreatedAt time.Time `gorm:"autoCreateTime"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime"`
 
-	Products []Product `gorm:"foreignKey:SellerID;references:ID" json:"products"`
-	Orders   []Order   `gorm:"foreignKey:UserID;references:ID"`
-	Reviews  []Review  `gorm:"foreignKey:UserID;references:ID"`
+	Products []Product `gorm:"foreignKey:SellerID;references:ID" json:"-"`
+	Orders   []Order   `gorm:"foreignKey:UserID;references:ID" json:"-"`
+	Reviews  []Review  `gorm:"foreignKey:UserID;references:ID" json:"-"`
 }
 
 func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
