@@ -46,7 +46,7 @@ func ValidateToken(tokenString string) (*JWTClaims, error) {
 	if err != nil {
 		var validationErr *jwt.ValidationError
 		if errors.As(err, &validationErr) {
-			if errors.Is(err, jwt.ErrTokenExpired) { // ✅ Perbaikan di sini
+			if errors.Is(err, jwt.ErrTokenExpired) {
 				return nil, errors.New("token has expired")
 			}
 			return nil, errors.New("invalid token")
@@ -61,4 +61,3 @@ func ValidateToken(tokenString string) (*JWTClaims, error) {
 
 	return claims, nil
 }
-
