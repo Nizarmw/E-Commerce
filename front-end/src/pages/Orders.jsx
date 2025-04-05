@@ -26,7 +26,7 @@ import {
   FilterList
 } from '@mui/icons-material';
 
-// Sample data - would come from API in a real app
+// Add the missing orders array
 const orders = [
   {
     id: 'ORD-001',
@@ -67,46 +67,6 @@ const orders = [
     amount: 79.99,
     status: 'Processing',
     paymentMethod: 'Credit Card'
-  },
-  {
-    id: 'ORD-006',
-    customer: 'Jennifer Taylor',
-    date: '2023-05-05',
-    amount: 149.99,
-    status: 'Cancelled',
-    paymentMethod: 'Bank Transfer'
-  },
-  {
-    id: 'ORD-007',
-    customer: 'David Miller',
-    date: '2023-05-04',
-    amount: 89.99,
-    status: 'Delivered',
-    paymentMethod: 'Credit Card'
-  },
-  {
-    id: 'ORD-008',
-    customer: 'Lisa Anderson',
-    date: '2023-05-03',
-    amount: 44.99,
-    status: 'Shipped',
-    paymentMethod: 'PayPal'
-  },
-  {
-    id: 'ORD-009',
-    customer: 'William Thomas',
-    date: '2023-05-02',
-    amount: 129.99,
-    status: 'Processing',
-    paymentMethod: 'Credit Card'
-  },
-  {
-    id: 'ORD-010',
-    customer: 'Jessica Garcia',
-    date: '2023-05-01',
-    amount: 69.99,
-    status: 'Delivered',
-    paymentMethod: 'PayPal'
   }
 ];
 

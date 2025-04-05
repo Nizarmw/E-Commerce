@@ -3,9 +3,9 @@ import { createTheme } from '@mui/material/styles';
 const theme = createTheme({
   palette: {
     primary: {
-      main: '#3f51b5',
-      light: '#757de8',
-      dark: '#002984',
+      main: '#1976d2',
+      light: '#42a5f5',
+      dark: '#1565c0',
       contrastText: '#fff',
     },
     secondary: {
@@ -15,69 +15,67 @@ const theme = createTheme({
       contrastText: '#fff',
     },
     background: {
-      default: '#f8f9fa',
+      default: '#f5f5f5',
       paper: '#ffffff',
     },
     text: {
-      primary: '#212121',
-      secondary: '#757575',
+      primary: '#333333',
+      secondary: '#666666',
+    },
+    error: {
+      main: '#f44336',
+    },
+    success: {
+      main: '#4caf50',
+    },
+    warning: {
+      main: '#ff9800',
     },
   },
   typography: {
     fontFamily: [
       'Roboto',
-      '-apple-system',
-      'BlinkMacSystemFont',
-      '"Segoe UI"',
-      '"Helvetica Neue"',
       'Arial',
       'sans-serif',
     ].join(','),
     h1: {
       fontSize: '2.5rem',
       fontWeight: 500,
-      lineHeight: 1.2,
     },
     h2: {
       fontSize: '2rem',
       fontWeight: 500,
-      lineHeight: 1.2,
     },
     h3: {
       fontSize: '1.75rem',
       fontWeight: 500,
-      lineHeight: 1.2,
     },
     h4: {
       fontSize: '1.5rem',
       fontWeight: 500,
-      lineHeight: 1.2,
     },
     h5: {
       fontSize: '1.25rem',
       fontWeight: 500,
-      lineHeight: 1.2,
     },
     h6: {
       fontSize: '1rem',
       fontWeight: 500,
-      lineHeight: 1.2,
     },
     button: {
       textTransform: 'none',
     },
   },
+  shape: {
+    borderRadius: 8,
+  },
   components: {
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: 8,
-          padding: '8px 16px',
-        },
-        contained: {
-          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+          boxShadow: 'none',
           '&:hover': {
-            boxShadow: '0 6px 10px rgba(0, 0, 0, 0.15)',
+            boxShadow: '0px 2px 4px rgba(0,0,0,0.1)',
           },
         },
       },
@@ -85,26 +83,15 @@ const theme = createTheme({
     MuiCard: {
       styleOverrides: {
         root: {
-          borderRadius: 12,
-          boxShadow: '0 6px 12px rgba(0, 0, 0, 0.08)',
-          transition: 'transform 0.3s ease, box-shadow 0.3s ease',
+          boxShadow: '0px 2px 8px rgba(0,0,0,0.08)',
+          transition: 'transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out',
           '&:hover': {
             transform: 'translateY(-4px)',
-            boxShadow: '0 12px 20px rgba(0, 0, 0, 0.12)',
+            boxShadow: '0px 4px 12px rgba(0,0,0,0.12)',
           },
         },
       },
     },
-    MuiAppBar: {
-      styleOverrides: {
-        root: {
-          boxShadow: '0 2px 10px rgba(0, 0, 0, 0.08)',
-        },
-      },
-    },
-  },
-  shape: {
-    borderRadius: 8,
   },
 });
 

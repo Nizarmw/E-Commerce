@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { 
   Box, 
   Container, 
@@ -7,269 +7,144 @@ import {
   Typography, 
   Card, 
   CardContent, 
-  CardHeader,
   Divider,
   List,
   ListItem,
   ListItemText,
   ListItemAvatar,
   Avatar,
-  IconButton,
   useTheme
 } from '@mui/material';
-import { 
-  TrendingUp, 
-  People, 
-  ShoppingCart, 
-  AttachMoney,
-  MoreVert,
-  ArrowUpward,
-  ArrowDownward
-} from '@mui/icons-material';
-import { ResponsiveContainer, LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
-
-// Sample data - replace with actual API calls in production
-const revenueData = [
-  { month: 'Jan', revenue: 4000 },
-  { month: 'Feb', revenue: 3000 },
-  { month: 'Mar', revenue: 5000 },
-  { month: 'Apr', revenue: 4500 },
-  { month: 'May', revenue: 6000 },
-  { month: 'Jun', revenue: 5500 },
-];
-
-const salesData = [
-  { name: 'Electronics', sales: 4000 },
-  { name: 'Clothing', sales: 3000 },
-  { name: 'Books', sales: 2000 },
-  { name: 'Home', sales: 2780 },
-  { name: 'Beauty', sales: 1890 },
-  { name: 'Toys', sales: 2390 },
-];
-
-const recentOrders = [
-  { id: '1', customer: 'John Smith', product: 'Wireless Headphones', amount: 129.99, status: 'Delivered' },
-  { id: '2', customer: 'Sarah Johnson', product: 'Smartphone Case', amount: 24.99, status: 'Processing' },
-  { id: '3', customer: 'Michael Brown', product: 'Smart Watch', amount: 199.99, status: 'Shipped' },
-  { id: '4', customer: 'Emma Davis', product: 'Laptop Backpack', amount: 59.99, status: 'Delivered' },
-  { id: '5', customer: 'Robert Wilson', product: 'Bluetooth Speaker', amount: 79.99, status: 'Processing' },
-];
-
-// Stats card component
-const StatsCard = ({ icon, title, value, change, isPositive }) => {
-  return (
-    <Card sx={{ height: '100%', boxShadow: 2 }}>
-      <CardContent>
-        <Grid container spacing={3} sx={{ justifyContent: 'space-between' }}>
-          <Grid item>
-            <Typography color="textSecondary" gutterBottom variant="overline">
-              {title}
-            </Typography>
-            <Typography color="textPrimary" variant="h4">
-              {value}
-            </Typography>
-          </Grid>
-          <Grid item>
-            <Avatar
-              sx={{
-                backgroundColor: isPositive ? 'success.main' : 'error.main',
-                height: 56,
-                width: 56
-              }}
-            >
-              {icon}
-            </Avatar>
-          </Grid>
-        </Grid>
-        <Box
-          sx={{
-            pt: 2,
-            display: 'flex',
-            alignItems: 'center'
-          }}
-        >
-          {isPositive ? <ArrowUpward color="success" /> : <ArrowDownward color="error" />}
-          <Typography
-            color={isPositive ? 'success.main' : 'error.main'}
-            sx={{
-              mr: 1
-            }}
-            variant="body2"
-          >
-            {change}
-          </Typography>
-          <Typography color="textSecondary" variant="caption">
-            Since last month
-          </Typography>
-        </Box>
-      </CardContent>
-    </Card>
-  );
-};
+import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell } from 'recharts';
 
 const Dashboard = () => {
   const theme = useTheme();
 
+  // Sample data for charts
+  const salesData = [
+    { name: 'Jan', sales: 4000 },
+    { name: 'Feb', sales: 3000 },
+    { name: 'Mar', sales: 5000 },
+    { name: 'Apr', sales: 2780 },
+    { name: 'May', sales: 1890 },
+    { name: 'Jun', sales: 2390 },
+  ];
+
+  const categoryData = [
+    { name: 'Electronics', value: 400 },
+    { name: 'Clothing', value: 300 },
+    { name: 'Home', value: 300 },
+    { name: 'Books', value: 200 },
+  ];
+
+  // Sample recent orders data
+  const recentOrders = [
+    { id: 1, customer: 'John Doe', product: 'Wireless Headphones', status: 'Delivered', amount: 129.99 },
+    { id: 2, customer: 'Jane Smith', product: 'Smartphone X12', status: 'Processing', amount: 899.99 },
+    { id: 3, customer: 'Robert Johnson', product: 'Laptop Pro', status: 'Shipped', amount: 1299.99 },
+  ];
+
+  const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
+
   return (
-    <Container maxWidth="xl" sx={{ mt: 4, mb: 4 }}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        Dashboard
-      </Typography>
+    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
+      <Typography variant="h4" gutterBottom>Dashboard</Typography>
       
-      {/* Stats Overview */}
-      <Grid container spacing={3} mb={4}>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatsCard 
-            icon={<AttachMoney />} 
-            title="TOTAL REVENUE" 
-            value="$21,897" 
-            change="12%" 
-            isPositive={true} 
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatsCard 
-            icon={<ShoppingCart />} 
-            title="TOTAL ORDERS" 
-            value="356" 
-            change="8%" 
-            isPositive={true} 
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatsCard 
-            icon={<People />} 
-            title="NEW CUSTOMERS" 
-            value="143" 
-            change="5%" 
-            isPositive={true} 
-          />
-        </Grid>
-        <Grid item xs={12} sm={6} md={3}>
-          <StatsCard 
-            icon={<TrendingUp />} 
-            title="CONVERSION RATE" 
-            value="2.5%" 
-            change="1.2%" 
-            isPositive={false} 
-          />
-        </Grid>
+      {/* Summary Stats */}
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        {[
+          { title: 'Total Sales', value: '$24,560', color: '#3f51b5' },
+          { title: 'Total Orders', value: '1,245', color: '#f44336' },
+          { title: 'New Customers', value: '356', color: '#4caf50' },
+          { title: 'Product Views', value: '12,932', color: '#ff9800' }
+        ].map((item, index) => (
+          <Grid item xs={12} sm={6} md={3} key={index}>
+            <Card sx={{ bgcolor: item.color, color: 'white' }}>
+              <CardContent>
+                <Typography variant="h6" gutterBottom>{item.title}</Typography>
+                <Typography variant="h4">{item.value}</Typography>
+              </CardContent>
+            </Card>
+          </Grid>
+        ))}
       </Grid>
       
       {/* Charts */}
-      <Grid container spacing={3} mb={4}>
+      <Grid container spacing={3} sx={{ mb: 4 }}>
+        {/* Sales Trend Chart */}
         <Grid item xs={12} md={8}>
-          <Paper
-            sx={{
-              p: 2,
-              display: 'flex',
-              flexDirection: 'column',
-              height: 340,
-              boxShadow: 2
-            }}
-          >
-            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <Typography variant="h6" component="h2" gutterBottom>
-                Revenue Overview
-              </Typography>
-              <IconButton>
-                <MoreVert />
-              </IconButton>
-            </Box>
-            <Divider />
-            <Box sx={{ height: '100%', pt: 2 }}>
-              <ResponsiveContainer width="100%" height="100%">
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>Sales Trend</Typography>
+              <ResponsiveContainer width="100%" height={300}>
                 <LineChart
-                  data={revenueData}
+                  data={salesData}
                   margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
+                  <XAxis dataKey="name" />
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Line type="monotone" dataKey="revenue" stroke={theme.palette.primary.main} activeDot={{ r: 8 }} />
+                  <Line type="monotone" dataKey="sales" stroke="#8884d8" activeDot={{ r: 8 }} />
                 </LineChart>
               </ResponsiveContainer>
-            </Box>
-          </Paper>
+            </CardContent>
+          </Card>
         </Grid>
+        
+        {/* Category Distribution */}
         <Grid item xs={12} md={4}>
-          <Paper
-            sx={{
-              p: 2,
-              display: 'flex',
-              flexDirection: 'column',
-              height: 340,
-              boxShadow: 2
-            }}
-          >
-            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <Typography variant="h6" component="h2" gutterBottom>
-                Sales by Category
-              </Typography>
-              <IconButton>
-                <MoreVert />
-              </IconButton>
-            </Box>
-            <Divider />
-            <Box sx={{ height: '100%', pt: 2 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  data={salesData}
-                  margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
-                  layout="vertical"
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis type="number" />
-                  <YAxis dataKey="name" type="category" />
+          <Card>
+            <CardContent>
+              <Typography variant="h6" gutterBottom>Sales by Category</Typography>
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={categoryData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  >
+                    {categoryData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
                   <Tooltip />
-                  <Legend />
-                  <Bar dataKey="sales" fill={theme.palette.secondary.main} />
-                </BarChart>
+                </PieChart>
               </ResponsiveContainer>
-            </Box>
-          </Paper>
+            </CardContent>
+          </Card>
         </Grid>
       </Grid>
       
       {/* Recent Orders */}
       <Grid container spacing={3}>
         <Grid item xs={12}>
-          <Paper
-            sx={{
-              p: 2,
-              display: 'flex',
-              flexDirection: 'column',
-              boxShadow: 2
-            }}
-          >
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-              <Typography variant="h6" component="h2">
-                Recent Orders
-              </Typography>
-              <Typography variant="subtitle1" color="primary" sx={{ cursor: 'pointer' }}>
-                View all
-              </Typography>
-            </Box>
-            <Divider />
+          <Paper sx={{ p: 2 }}>
+            <Typography variant="h6" gutterBottom>Recent Orders</Typography>
             <List>
               {recentOrders.map((order) => (
                 <React.Fragment key={order.id}>
                   <ListItem
                     secondaryAction={
-                      <Box>
-                        <Typography variant="body2" color="textSecondary">
+                      <Box sx={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: 1 
+                      }}>
+                        <Typography variant="body2">
                           ${order.amount}
                         </Typography>
                         <Typography 
-                          variant="caption" 
+                          variant="body2" 
                           sx={{ 
-                            color: order.status === 'Delivered' 
-                              ? 'success.main' 
-                              : order.status === 'Shipped' 
-                              ? 'info.main' 
-                              : 'warning.main' 
+                            color: order.status === 'Delivered' ? 'green' : 
+                                  (order.status === 'Processing' ? 'orange' : 'blue')
                           }}
                         >
                           {order.status}

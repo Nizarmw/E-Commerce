@@ -6,147 +6,158 @@ import {
   Grid,
   Typography,
   Link,
-  Stack,
-  IconButton,
-  Button,
   Divider,
-  TextField,
+  IconButton,
+  useMediaQuery,
   useTheme,
-  useMediaQuery
 } from '@mui/material';
-import {
-  Facebook,
-  Twitter,
-  Instagram,
-  YouTube,
-  LinkedIn,
-  Email
-} from '@mui/icons-material';
+import FacebookIcon from '@mui/icons-material/Facebook';
+import TwitterIcon from '@mui/icons-material/Twitter';
+import InstagramIcon from '@mui/icons-material/Instagram';
+import LinkedInIcon from '@mui/icons-material/LinkedIn';
+import EmailIcon from '@mui/icons-material/Email';
+import LocationOnIcon from '@mui/icons-material/LocationOn';
+import PhoneIcon from '@mui/icons-material/Phone';
 
 const Footer = () => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   
-  const footerLinks = {
-    'Shop': ['Products', 'Categories', 'Deals', 'New Arrivals', 'Popular Items'],
-    'Customer Service': ['Contact Us', 'FAQs', 'Shipping Policy', 'Returns & Refunds', 'Track Order'],
-    'Information': ['About Us', 'Blog', 'Privacy Policy', 'Terms & Conditions', 'Careers']
-  };
-
-  const socialIcons = [
-    { icon: <Facebook />, name: 'Facebook', url: '#' },
-    { icon: <Twitter />, name: 'Twitter', url: '#' },
-    { icon: <Instagram />, name: 'Instagram', url: '#' },
-    { icon: <YouTube />, name: 'YouTube', url: '#' },
-    { icon: <LinkedIn />, name: 'LinkedIn', url: '#' }
-  ];
-
   return (
     <Box
-      component="footer"
       sx={{
-        py: 6,
-        px: 2,
-        mt: 'auto',
-        backgroundColor: theme.palette.grey[900],
-        color: theme.palette.common.white
+        bgcolor: 'background.paper',
+        pt: 6,
+        pb: 3,
+        borderTop: '1px solid',
+        borderColor: 'divider',
       }}
+      component="footer"
     >
       <Container maxWidth="lg">
         <Grid container spacing={4}>
-          {/* Newsletter Subscription */}
-          <Grid item xs={12} md={4}>
-            <Typography variant="h6" gutterBottom>
-              Subscribe to Our Newsletter
+          {/* Company Info */}
+          <Grid item xs={12} sm={6} md={3}>
+            <Typography variant="h6" color="text.primary" gutterBottom>
+              E-SHOP
             </Typography>
-            <Typography variant="body2" sx={{ mb: 2 }}>
-              Stay updated with our latest offers and promotions.
+            <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+              Your one-stop shop for all your shopping needs. Quality products at affordable prices.
             </Typography>
-            <Stack direction="row" spacing={1}>
-              <TextField
-                variant="outlined"
-                placeholder="Your Email"
-                size="small"
-                fullWidth
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                    '&:hover': {
-                      backgroundColor: 'rgba(255, 255, 255, 0.15)',
-                    },
-                    '& fieldset': {
-                      borderColor: 'rgba(255, 255, 255, 0.3)',
-                    },
-                  },
-                  '& .MuiInputBase-input': {
-                    color: 'white',
-                  },
-                }}
-              />
-              <Button variant="contained" color="primary" endIcon={<Email />}>
-                {isMobile ? '' : 'Subscribe'}
-              </Button>
-            </Stack>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <IconButton size="small" color="primary" aria-label="facebook">
+                <FacebookIcon />
+              </IconButton>
+              <IconButton size="small" color="primary" aria-label="twitter">
+                <TwitterIcon />
+              </IconButton>
+              <IconButton size="small" color="primary" aria-label="instagram">
+                <InstagramIcon />
+              </IconButton>
+              <IconButton size="small" color="primary" aria-label="linkedin">
+                <LinkedInIcon />
+              </IconButton>
+            </Box>
           </Grid>
 
-          {/* Footer Links */}
-          {Object.entries(footerLinks).map(([category, links]) => (
-            <Grid item xs={12} sm={6} md={2.5} key={category}>
-              <Typography variant="h6" gutterBottom>
-                {category}
-              </Typography>
-              <Stack spacing={1}>
-                {links.map(link => (
-                  <Link
-                    key={link}
-                    component={RouterLink}
-                    to={`/${link.toLowerCase().replace(/\s+/g, '-')}`}
-                    color="inherit"
-                    underline="hover"
-                    sx={{ opacity: 0.8, '&:hover': { opacity: 1 } }}
-                  >
-                    {link}
-                  </Link>
-                ))}
-              </Stack>
-            </Grid>
-          ))}
+          {/* Quick Links */}
+          <Grid item xs={12} sm={6} md={3}>
+            <Typography variant="h6" color="text.primary" gutterBottom>
+              Quick Links
+            </Typography>
+            <Box component="ul" sx={{ p: 0, m: 0, listStyle: 'none' }}>
+              <Box component="li" sx={{ mb: 1 }}>
+                <Link component={RouterLink} to="/" color="inherit" underline="hover">
+                  Home
+                </Link>
+              </Box>
+              <Box component="li" sx={{ mb: 1 }}>
+                <Link component={RouterLink} to="/products" color="inherit" underline="hover">
+                  Products
+                </Link>
+              </Box>
+              <Box component="li" sx={{ mb: 1 }}>
+                <Link component={RouterLink} to="/about" color="inherit" underline="hover">
+                  About Us
+                </Link>
+              </Box>
+              <Box component="li" sx={{ mb: 1 }}>
+                <Link component={RouterLink} to="/contact" color="inherit" underline="hover">
+                  Contact
+                </Link>
+              </Box>
+            </Box>
+          </Grid>
+
+          {/* Customer Service */}
+          <Grid item xs={12} sm={6} md={3}>
+            <Typography variant="h6" color="text.primary" gutterBottom>
+              Customer Service
+            </Typography>
+            <Box component="ul" sx={{ p: 0, m: 0, listStyle: 'none' }}>
+              <Box component="li" sx={{ mb: 1 }}>
+                <Link component={RouterLink} to="/faq" color="inherit" underline="hover">
+                  FAQ
+                </Link>
+              </Box>
+              <Box component="li" sx={{ mb: 1 }}>
+                <Link component={RouterLink} to="/shipping" color="inherit" underline="hover">
+                  Shipping & Delivery
+                </Link>
+              </Box>
+              <Box component="li" sx={{ mb: 1 }}>
+                <Link component={RouterLink} to="/returns" color="inherit" underline="hover">
+                  Returns & Refunds
+                </Link>
+              </Box>
+              <Box component="li" sx={{ mb: 1 }}>
+                <Link component={RouterLink} to="/privacy" color="inherit" underline="hover">
+                  Privacy Policy
+                </Link>
+              </Box>
+            </Box>
+          </Grid>
+
+          {/* Contact Info */}
+          <Grid item xs={12} sm={6} md={3}>
+            <Typography variant="h6" color="text.primary" gutterBottom>
+              Contact Us
+            </Typography>
+            <Box component="ul" sx={{ p: 0, m: 0, listStyle: 'none' }}>
+              <Box component="li" sx={{ mb: 1, display: 'flex', alignItems: 'center' }}>
+                <LocationOnIcon sx={{ mr: 1, fontSize: '1rem', color: 'primary.main' }} />
+                <Typography variant="body2">
+                  123 Shopping Street, Jakarta, Indonesia
+                </Typography>
+              </Box>
+              <Box component="li" sx={{ mb: 1, display: 'flex', alignItems: 'center' }}>
+                <EmailIcon sx={{ mr: 1, fontSize: '1rem', color: 'primary.main' }} />
+                <Link href="mailto:info@eshop.com" color="inherit" underline="hover">
+                  info@eshop.com
+                </Link>
+              </Box>
+              <Box component="li" sx={{ mb: 1, display: 'flex', alignItems: 'center' }}>
+                <PhoneIcon sx={{ mr: 1, fontSize: '1rem', color: 'primary.main' }} />
+                <Link href="tel:+6287654321" color="inherit" underline="hover">
+                  +62 8765 4321
+                </Link>
+              </Box>
+            </Box>
+          </Grid>
         </Grid>
 
-        <Divider sx={{ my: 4, backgroundColor: 'rgba(255, 255, 255, 0.2)' }} />
-
-        <Grid container justifyContent="space-between" alignItems="center">
-          <Grid item>
-            <Typography variant="body2" sx={{ opacity: 0.7 }}>
-              © {new Date().getFullYear()} E-Commerce. All rights reserved.
+        <Divider sx={{ mt: 4, mb: 3 }} />
+        
+        <Box sx={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: isMobile ? 'center' : 'flex-start' }}>
+          <Typography variant="body2" color="text.secondary" align={isMobile ? 'center' : 'left'}>
+            © {new Date().getFullYear()} E-SHOP. All rights reserved.
+          </Typography>
+          {!isMobile && (
+            <Typography variant="body2" color="text.secondary">
+              Designed with ❤️ by DevSec Team
             </Typography>
-          </Grid>
-          <Grid item>
-            <Stack direction="row" spacing={1}>
-              {socialIcons.map((item) => (
-                <IconButton
-                  key={item.name}
-                  component="a"
-                  href={item.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  aria-label={`${item.name} link`}
-                  size="small"
-                  sx={{ 
-                    color: theme.palette.common.white,
-                    '&:hover': { 
-                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                      transform: 'translateY(-2px)'
-                    },
-                    transition: 'transform 0.2s'
-                  }}
-                >
-                  {item.icon}
-                </IconButton>
-              ))}
-            </Stack>
-          </Grid>
-        </Grid>
+          )}
+        </Box>
       </Container>
     </Box>
   );

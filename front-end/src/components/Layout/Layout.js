@@ -1,7 +1,7 @@
 import React from 'react';
 import { Box, Container } from '@mui/material';
-import Header from './Header';
-import Footer from './Footer';
+import Header from '../Navbar'; // Remove .jsx extension if file doesn't exist
+import Footer from '../Footer'; // Remove .js extension if file doesn't exist
 
 const Layout = ({ children }) => {
   return (

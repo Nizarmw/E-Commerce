@@ -1,160 +1,266 @@
-import React, { useState } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { Link, useNavigate } from 'react-router-dom';
-import { removeFromCart, updateCartItemQuantity, clearCart } from '../redux/cartSlice';
-import { isAuthenticated } from '../utils/auth';
+import React from 'react';
+import { Link as RouterLink } from 'react-router-dom';
+import {
+  Box,
+  Typography,
+  Button,
+  Paper,
+  Grid,
+  Divider,
+  IconButton,
+  TextField,
+  Card,
+  CardMedia,
+  Container,
+  Snackbar,
+  Alert,
+} from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+
+// Mock cart data - replace with actual state from Redux or context
+const mockCartItems = [
+  {
+    id: 1,
+    name: 'Product 1',
+    image: 'https://via.placeholder.com/150',
+    price: 100000,
+    quantity: 2,
+  },
+  {
+    id: 2,
+    name: 'Product 2',
+    image: 'https://via.placeholder.com/150',
+    price: 200000,
+    quantity: 1,
+  },
+];
 
 const Cart = () => {
-  const cart = useSelector((state) => state.cart.items);
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-
-  // Calculate totals
-  const subtotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
-  const tax = subtotal * 0.1; // 10% tax
-  const total = subtotal + tax;
-
+  const [cartItems, setCartItems] = React.useState(mockCartItems);
+  const [snackbarOpen, setSnackbarOpen] = React.useState(false);
+  const [snackbarMessage, setSnackbarMessage] = React.useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = React.useState('success');
+  
+  const handleQuantityChange = (id, value) => {
+    const newQuantity = Math.max(1, value);
+    const updatedItems = cartItems.map(item => 
+      item.id === id ? { ...item, quantity: newQuantity } : item
+    );
+    setCartItems(updatedItems);
+    setSnackbarMessage('Cart updated');
+    setSnackbarSeverity('success');
+    setSnackbarOpen(true);
+  };
+  
   const handleRemoveItem = (id) => {
-    dispatch(removeFromCart(id));
+    const updatedItems = cartItems.filter(item => item.id !== id);
+    setCartItems(updatedItems);
+    setSnackbarMessage('Item removed from cart');
+    setSnackbarSeverity('info');
+    setSnackbarOpen(true);
   };
-
-  const handleQuantityChange = (id, newQuantity) => {
-    if (newQuantity > 0 && newQuantity <= 10) { // Set a reasonable max quantity
-      dispatch(updateCartItemQuantity({ id, quantity: newQuantity }));
-    }
+  
+  const handleCloseSnackbar = () => {
+    setSnackbarOpen(false);
   };
-
-  const handleCheckout = () => {
-    if (!isAuthenticated()) {
-      alert('Silakan login terlebih dahulu untuk melanjutkan checkout');
-      navigate('/login', { state: { from: '/cart' } });
-      return;
-    }
-
-    navigate('/checkout');
-  };
-
+  
+  // Calculate cart summary
+  const subtotal = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+  const shipping = subtotal > 0 ? 15000 : 0; // Example shipping logic
+  const total = subtotal + shipping;
+  
   // If cart is empty
-  if (cart.length === 0) {
+  if (cartItems.length === 0) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold mb-6">Keranjang Belanja</h1>
-        <div className="bg-white p-6 rounded-lg shadow-md text-center">
-          <p className="text-gray-600 mb-4">Keranjang belanja Anda kosong</p>
-          <Link to="/" className="btn btn-primary">
-            Mulai Belanja
-          </Link>
-        </div>
-      </div>
+      <Container maxWidth="lg" sx={{ py: 4 }}>
+        <Paper sx={{ p: 4, textAlign: 'center', borderRadius: 2 }}>
+          <Box sx={{ py: 4, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+            <ShoppingCartIcon sx={{ fontSize: 60, color: 'text.secondary', mb: 2 }} />
+            <Typography variant="h5" gutterBottom>
+              Your cart is empty
+            </Typography>
+            <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
+              Looks like you haven't added any products to your cart yet.
+            </Typography>
+            <Button
+              variant="contained"
+              component={RouterLink}
+              to="/products"
+              startIcon={<ArrowBackIcon />}
+              sx={{ mt: 2 }}
+            >
+              Continue Shopping
+            </Button>
+          </Box>
+        </Paper>
+      </Container>
     );
   }
-
+  
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6">Keranjang Belanja</h1>
+    <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Typography variant="h4" component="h1" gutterBottom>
+        Shopping Cart
+      </Typography>
       
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2">
-          {/* Cart Items */}
-          <div className="bg-white rounded-lg shadow-md overflow-hidden">
-            <div className="p-4 border-b">
-              <h2 className="text-lg font-semibold">Items ({cart.length})</h2>
-            </div>
-            
-            <ul>
-              {cart.map((item) => (
-                <li key={item.id} className="border-b p-4 flex flex-col sm:flex-row items-start sm:items-center">
-                  {/* Product image or placeholder */}
-                  <div className="w-20 h-20 bg-gray-200 rounded flex-shrink-0 mr-4 mb-4 sm:mb-0">
-                    {item.imageUrl ? (
-                      <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center text-gray-400">
-                        No img
-                      </div>
-                    )}
-                  </div>
+      <Grid container spacing={4}>
+        {/* Cart Items */}
+        <Grid item xs={12} md={8}>
+          <Paper sx={{ p: { xs: 2, md: 3 }, borderRadius: 2 }}>
+            {cartItems.map((item) => (
+              <Box key={item.id} sx={{ mb: 3 }}>
+                <Grid container alignItems="center" spacing={2}>
+                  {/* Product Image */}
+                  <Grid item xs={3} sm={2}>
+                    <Card sx={{ boxShadow: 'none' }}>
+                      <CardMedia
+                        component="img"
+                        image={item.image}
+                        alt={item.name}
+                        sx={{ height: 70, objectFit: 'contain' }}
+                      />
+                    </Card>
+                  </Grid>
                   
-                  {/* Product details */}
-                  <div className="flex-grow mb-4 sm:mb-0">
-                    <h3 className="font-semibold text-lg">{item.name}</h3>
-                    <p className="text-sm text-gray-600">{item.description?.substring(0, 50)}...</p>
-                    <p className="text-blue-600 font-medium">Rp {item.price.toLocaleString('id-ID')}</p>
-                  </div>
+                  {/* Product Details */}
+                  <Grid item xs={9} sm={4}>
+                    <Typography variant="subtitle1" component={RouterLink} to={`/product/${item.id}`}
+                      sx={{ textDecoration: 'none', color: 'inherit', fontWeight: 'medium' }}>
+                      {item.name}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Rp{item.price.toLocaleString()}
+                    </Typography>
+                  </Grid>
                   
-                  {/* Quantity control */}
-                  <div className="flex items-center mr-4">
-                    <button 
-                      onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
-                      className="border rounded-l px-2 py-1 bg-gray-100 hover:bg-gray-200"
+                  {/* Quantity Controls */}
+                  <Grid item xs={6} sm={3}>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <IconButton 
+                        size="small" 
+                        onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                        disabled={item.quantity <= 1}
+                      >
+                        <RemoveIcon fontSize="small" />
+                      </IconButton>
+                      <TextField
+                        size="small"
+                        value={item.quantity}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value);
+                          if (!isNaN(value)) {
+                            handleQuantityChange(item.id, value);
+                          }
+                        }}
+                        inputProps={{ 
+                          min: 1, 
+                          style: { textAlign: 'center', width: '30px' } 
+                        }}
+                        sx={{ mx: 1 }}
+                      />
+                      <IconButton 
+                        size="small" 
+                        onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                      >
+                        <AddIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
+                  </Grid>
+                  
+                  {/* Subtotal */}
+                  <Grid item xs={4} sm={2} sx={{ textAlign: 'right' }}>
+                    <Typography variant="subtitle2">
+                      Rp{(item.price * item.quantity).toLocaleString()}
+                    </Typography>
+                  </Grid>
+                  
+                  {/* Remove Button */}
+                  <Grid item xs={2} sm={1} sx={{ textAlign: 'right' }}>
+                    <IconButton 
+                      color="error" 
+                      onClick={() => handleRemoveItem(item.id)}
+                      size="small"
                     >
-                      -
-                    </button>
-                    <span className="border-t border-b px-4 py-1">{item.quantity || 1}</span>
-                    <button 
-                      onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
-                      className="border rounded-r px-2 py-1 bg-gray-100 hover:bg-gray-200"
-                    >
-                      +
-                    </button>
-                  </div>
-                  
-                  {/* Remove button */}
-                  <button 
-                    onClick={() => handleRemoveItem(item.id)}
-                    className="text-red-500 hover:text-red-700"
-                  >
-                    Hapus
-                  </button>
-                </li>
-              ))}
-            </ul>
+                      <DeleteOutlineIcon />
+                    </IconButton>
+                  </Grid>
+                </Grid>
+                <Divider sx={{ my: 2 }} />
+              </Box>
+            ))}
             
-            {/* Cart actions */}
-            <div className="p-4 flex justify-between">
-              <button 
-                onClick={() => dispatch(clearCart())}
-                className="text-red-500 hover:text-red-700"
+            <Box sx={{ textAlign: 'right' }}>
+              <Button
+                component={RouterLink}
+                to="/products"
+                startIcon={<ArrowBackIcon />}
+                sx={{ mt: 2 }}
               >
-                Kosongkan Keranjang
-              </button>
-              <Link to="/" className="text-blue-500 hover:text-blue-700">
-                Lanjut Belanja
-              </Link>
-            </div>
-          </div>
-        </div>
+                Continue Shopping
+              </Button>
+            </Box>
+          </Paper>
+        </Grid>
         
         {/* Order Summary */}
-        <div className="lg:col-span-1">
-          <div className="bg-white rounded-lg shadow-md p-4">
-            <h2 className="text-lg font-semibold mb-4">Ringkasan Order</h2>
-            
-            <div className="space-y-3 mb-4">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Subtotal ({cart.length} items)</span>
-                <span>Rp {subtotal.toLocaleString('id-ID')}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-600">Pajak (10%)</span>
-                <span>Rp {tax.toLocaleString('id-ID')}</span>
-              </div>
-              <div className="border-t pt-3 font-bold flex justify-between">
-                <span>Total</span>
-                <span>Rp {total.toLocaleString('id-ID')}</span>
-              </div>
-            </div>
-            
-            <button 
-              onClick={handleCheckout}
-              className="btn btn-primary w-full"
+        <Grid item xs={12} md={4}>
+          <Paper sx={{ p: 3, borderRadius: 2 }}>
+            <Typography variant="h6" gutterBottom>
+              Order Summary
+            </Typography>
+            <Box sx={{ my: 2 }}>
+              <Grid container spacing={1}>
+                <Grid item xs={8}>
+                  <Typography>Subtotal</Typography>
+                </Grid>
+                <Grid item xs={4} sx={{ textAlign: 'right' }}>
+                  <Typography>Rp{subtotal.toLocaleString()}</Typography>
+                </Grid>
+                <Grid item xs={8}>
+                  <Typography>Shipping</Typography>
+                </Grid>
+                <Grid item xs={4} sx={{ textAlign: 'right' }}>
+                  <Typography>Rp{shipping.toLocaleString()}</Typography>
+                </Grid>
+              </Grid>
+            </Box>
+            <Divider sx={{ my: 2 }} />
+            <Grid container spacing={1}>
+              <Grid item xs={8}>
+                <Typography variant="h6">Total</Typography>
+              </Grid>
+              <Grid item xs={4} sx={{ textAlign: 'right' }}>
+                <Typography variant="h6">Rp{total.toLocaleString()}</Typography>
+              </Grid>
+            </Grid>
+            <Button
+              variant="contained"
+              fullWidth
+              sx={{ mt: 3, mb: 1, py: 1.5 }}
+              component={RouterLink}
+              to="/checkout"
             >
-              Lanjut ke Checkout
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+              Proceed to Checkout
+            </Button>
+          </Paper>
+        </Grid>
+      </Grid>
+      
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={3000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity} variant="filled">
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
+    </Container>
   );
 };
 
