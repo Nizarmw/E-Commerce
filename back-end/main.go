@@ -36,5 +36,5 @@ func main() {
 	})
 
 	log.Println("Server running on port 8080...")
-	r.Run(":8080")
+	r.Run("0.0.0.0:8080")
 }
