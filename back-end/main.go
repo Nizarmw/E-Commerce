@@ -24,6 +24,7 @@ func main() {
 	routes.SetupCategoryRoutes(r)
 	routes.RegisterReviewRoutes(r)
 	routes.SetupOrderRoutes(r)
+	routes.CartRoutes(r)
 	r.GET("/profile", middlewares.AuthMiddleware(), func(c *gin.Context) {
 		userID, _ := c.Get("userID")
 		role, _ := c.Get("role")

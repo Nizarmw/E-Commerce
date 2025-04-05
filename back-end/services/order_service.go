@@ -115,13 +115,12 @@ func UpdateOrder(order *models.Order) error {
 		return errors.New("order not found")
 	}
 
-	// Aturan: Kalau status masih pending, jangan izinkan update item atau total price
 	if existingOrder.Status == "pending" {
 		tx.Rollback()
 		return errors.New("cannot update order while status is still pending. Please cancel and reorder")
 	}
 
-	// Update hanya diperbolehkan pada field tertentu seperti status (contoh: dari "processing" jadi "shipped")
+	// Update hanya status
 	existingOrder.Status = order.Status
 
 	if err := tx.Save(&existingOrder).Error; err != nil {
@@ -136,9 +135,8 @@ func UpdateOrder(order *models.Order) error {
 func DeleteOrder(id string) error {
 	tx := config.DB.Begin()
 
-	// Cari order yang akan dihapus
 	var order models.Order
-	if err := config.DB.Preload("OrderItems").First(&order, "id = ?", id).Error; err != nil {
+	if err := tx.First(&order, "id = ?", id).Error; err != nil {
 		tx.Rollback()
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return errors.New("order not found")
@@ -146,21 +144,11 @@ func DeleteOrder(id string) error {
 		return errors.New("failed to find order: " + err.Error())
 	}
 
-	// Hapus OrderItems terlebih dahulu untuk menghindari foreign key constraint
-	for _, item := range order.OrderItems {
-		if err := tx.Delete(&item).Error; err != nil {
-			tx.Rollback()
-			return errors.New("failed to delete order item: " + err.Error())
-		}
-	}
-
-	// Hapus Order
 	if err := tx.Delete(&order).Error; err != nil {
 		tx.Rollback()
 		return errors.New("failed to delete order: " + err.Error())
 	}
 
-	// Commit transaksi
 	tx.Commit()
 	return nil
 }

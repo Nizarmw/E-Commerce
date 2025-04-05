@@ -74,11 +74,13 @@ func UpdateOrder(c *gin.Context) {
 	}
 
 	if err := services.UpdateOrder(&order); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update order"})
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	c.JSON(http.StatusOK, order)
+	// Fetch updated order from DB
+	updatedOrder, _ := services.GetOrderByID(order.ID)
+	c.JSON(http.StatusOK, updatedOrder)
 }
 
 // DeleteOrder menangani penghapusan order
