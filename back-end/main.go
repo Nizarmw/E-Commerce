@@ -6,7 +6,7 @@ import (
 	"ecommerce-backend/config"
 	"ecommerce-backend/middlewares"
 	"ecommerce-backend/routes"
-
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
@@ -19,11 +19,14 @@ func main() {
 
 	r := gin.Default()
 
+	r.Use(cors.Default())
+
 	routes.SetupAuthRoutes(r)
 	routes.SetupProductRoutes(r)
 	routes.SetupCategoryRoutes(r)
 	routes.RegisterReviewRoutes(r)
 	routes.SetupOrderRoutes(r)
+	routes.CartRoutes(r)
 	r.GET("/profile", middlewares.AuthMiddleware(), func(c *gin.Context) {
 		userID, _ := c.Get("userID")
 		role, _ := c.Get("role")
@@ -35,5 +38,5 @@ func main() {
 	})
 
 	log.Println("Server running on port 8080...")
-	r.Run(":8080")
+	r.Run("0.0.0.0:8080")
 }

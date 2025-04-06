@@ -1,0 +1,9 @@
+services:
+  backend:
+    build:
+      dockerfile: Dockerfile
+    container_name: ecommerce_frontend
+    env_file:
+      - .env
+    ports:
+      - "3000:3000"

@@ -9,7 +9,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Tambahkan item ke cart
 func AddToCart(c *gin.Context) {
 	var input models.CartItem
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -26,7 +25,6 @@ func AddToCart(c *gin.Context) {
 	c.JSON(http.StatusCreated, gin.H{"message": "Added to cart", "cart_item": cartItem})
 }
 
-// Lihat isi cart berdasarkan user
 func GetCartByUser(c *gin.Context) {
 	userID := c.Param("user_id")
 
@@ -39,7 +37,6 @@ func GetCartByUser(c *gin.Context) {
 	c.JSON(http.StatusOK, cartItems)
 }
 
-// Update item di cart
 func UpdateCartItem(c *gin.Context) {
 	var input models.CartItem
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -56,7 +53,6 @@ func UpdateCartItem(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "Cart updated", "cart_item": updatedCartItem})
 }
 
-// Hapus item dari cart
 func DeleteCartItem(c *gin.Context) {
 	cartItemID := c.Param("id")
 
