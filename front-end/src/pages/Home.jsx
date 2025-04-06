@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import {
   Box,
   Container,
@@ -15,6 +15,7 @@ import {
 import { styled } from '@mui/material/styles';
 import ProductCard from '../components/ProductCard';
 import axios from 'axios';
+import { isAuthenticated } from '../utils/auth';
 
 // Styled Hero Section
 const HeroSection = styled(Paper)(({ theme }) => ({
@@ -51,6 +52,22 @@ const Home = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isTablet = useMediaQuery(theme.breakpoints.down('md'));
   
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      if (!isAuthenticated()) {
+        navigate("/login");
+        return;
+      }
+
+      
+    };
+    
+    checkAuth();
+  }, [navigate]);
+
+
   useEffect(() => {
     const fetchProducts = async () => {
       try {
