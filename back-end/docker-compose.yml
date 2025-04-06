@@ -1,12 +1,11 @@
 services:
   backend:
     build:
-      context: ./back-end
       dockerfile: Dockerfile
     container_name: ecommerce_backend
     restart: always
     env_file:
-      - ./back-end/.env
+      - .env
     environment:
       DB_HOST: db
     ports:
@@ -17,7 +16,7 @@ services:
     image: mariadb:latest
     container_name: db_ecommerce
     env_file:
-      - ./back-end/.env
+      - .env
     environment:
       MARIADB_DATABASE: ${DB_NAME}
       MARIADB_USER: ${DB_USER}
