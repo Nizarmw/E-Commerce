@@ -19,9 +19,7 @@ func main() {
 
 	r := gin.Default()
 
-	r.Use(cors.New(cors.Config{
-		AllowOrigins: []string{"*"},
-	}))
+	r.Use(cors.Default())
 
 	routes.SetupAuthRoutes(r)
 	routes.SetupProductRoutes(r)
