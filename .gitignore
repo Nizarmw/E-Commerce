@@ -6,7 +6,7 @@
 
 # Ignore environment files
 .env
-
+back-end/.env
 # Ignore dependencies (Go modules will handle them)
 vendor/
 
