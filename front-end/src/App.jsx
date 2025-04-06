@@ -6,7 +6,9 @@ import Products from './pages/public/Products';  // Add this import
 import Login from './pages/auth/Login';  // Add this import
 import Register from './pages/auth/Register';  // Add this import
 import ForgotPassword from './pages/auth/ForgotPassword';  // Add this import
-import SearchResults from './pages/public/SearchResults';  // Add this import
+import SearchResults from './pages/public/Search';  // Add this import
+import OrderHistory from './pages/public/OrderHistory';
+import OrderDetail from './pages/public/OrderDetail';
 import { ThemeProvider, createTheme } from '@mui/material';
 import './styles/fonts.css';  // Add this import
 
@@ -95,6 +97,8 @@ const App = () => {
         <Route path="/register" element={<Register />} />  {/* Add this route */}
         <Route path="/forgot-password" element={<ForgotPassword />} />  {/* Add this route */}
         <Route path="/search" element={<SearchResults />} />  {/* Add this route */}
+        <Route path="/orders" element={<OrderHistory />} />
+        <Route path="/order/:id" element={<OrderDetail />} />
       </Routes>
     </ThemeProvider>
   );

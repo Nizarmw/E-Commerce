@@ -9,12 +9,14 @@ import {
   Typography,
   Link,
   Divider,
+  Alert,
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import Card from '../../components/common/Card';
 import Loading from '../../components/common/Loading';
 import PublicLayout from '../../layouts/PublicLayout';
+import axios from 'axios';
 
 const Register = () => {
   const [values, setValues] = useState({
@@ -56,12 +58,23 @@ const Register = () => {
     event.preventDefault();
     if (validateForm()) {
       setLoading(true);
+      setErrors({});
+      
       try {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        console.log('Registration successful');
+        // API call from register.js
+        await axios.post(process.env.REACT_APP_API_URL + '/auth/register', {
+          name: values.fullName,
+          email: values.email,
+          password: values.password
+        });
+        
+        // Show success message
+        alert('Registration successful! Please log in.');
         navigate('/login');
       } catch (error) {
-        console.error('Registration failed:', error);
+        setErrors({
+          form: error.response?.data?.message || 'Registration failed. Please try again.'
+        });
       } finally {
         setLoading(false);
       }
@@ -83,6 +96,11 @@ const Register = () => {
             <Card.Title>Create Account</Card.Title>
           </Card.Header>
           <Card.Content>
+            {errors.form && (
+              <Alert severity="error" sx={{ mb: 3 }}>
+                {errors.form}
+              </Alert>
+            )}
             <Box component="form" onSubmit={handleSubmit}>
               <TextField
                 fullWidth

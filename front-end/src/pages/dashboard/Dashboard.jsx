@@ -1,160 +1,172 @@
-import React from 'react';
-import {
-  Grid,
-  Paper,
-  Typography,
-  Box,
-  Card,
-  CardContent,
-  CardHeader,
-  IconButton,
-} from '@mui/material';
-import {
-  ShoppingCart,
-  People,
-  AttachMoney,
-  Inventory,
-  MoreVert,
-} from '@mui/icons-material';
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  LineChart,
-  Line,
-} from 'recharts';
-import { DashboardLayout } from '../../layouts';
-
-// Mock data - replace with actual API calls
-const salesData = [
-  { month: 'Jan', sales: 4000 },
-  { month: 'Feb', sales: 3000 },
-  { month: 'Mar', sales: 5000 },
-  { month: 'Apr', sales: 2780 },
-  { month: 'May', sales: 1890 },
-  { month: 'Jun', sales: 2390 },
-];
-
-const orderData = [
-  { date: '1/6', orders: 24 },
-  { date: '2/6', orders: 35 },
-  { date: '3/6', orders: 28 },
-  { date: '4/6', orders: 42 },
-  { date: '5/6', orders: 31 },
-  { date: '6/6', orders: 38 },
-];
-
-const StatCard = ({ title, value, icon, color }) => (
-  <Card>
-    <CardContent>
-      <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-        <Box
-          sx={{
-            backgroundColor: `${color}15`,
-            borderRadius: 2,
-            p: 1,
-            mr: 2,
-          }}
-        >
-          {icon}
-        </Box>
-        <IconButton size="small">
-          <MoreVert />
-        </IconButton>
-      </Box>
-      <Typography variant="h4" sx={{ mb: 1 }}>
-        {value}
-      </Typography>
-      <Typography variant="body2" color="text.secondary">
-        {title}
-      </Typography>
-    </CardContent>
-  </Card>
-);
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { 
+  Box, 
+  Typography, 
+  Paper, 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableContainer, 
+  TableHead, 
+  TableRow, 
+  Button, 
+  Select, 
+  MenuItem,
+  FormControl,
+  CircularProgress
+} from "@mui/material";
+import DashboardLayout from "../../layouts/DashboardLayout";
+import { isAuthenticated } from "../../utils/auth";
+import { getUsers, updateUserRole, deactivateUser } from "../../services/users";
+import Loading from "../../components/common/Loading";
 
 const Dashboard = () => {
+  const [users, setUsers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      if (!isAuthenticated()) {
+        alert("Unauthorized access");
+        navigate("/login");
+        return;
+      }
+
+      // Verify if user is admin
+      try {
+        const userRole = await checkUserRole();
+        
+        if (userRole !== "admin") {
+          alert("You don't have admin privileges");
+          navigate("/");
+          return;
+        }
+        
+        // Fetch users
+        fetchUsers();
+      } catch (error) {
+        console.error("Error:", error);
+        alert("Authentication failed");
+        navigate("/login");
+      }
+    };
+    
+    checkAuth();
+  }, [navigate]);
+
+  const checkUserRole = async () => {
+    // This would be moved to a proper service layer
+    try {
+      const response = await getUsers();
+      return response.role;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const fetchUsers = async () => {
+    try {
+      const data = await getUsers();
+      setUsers(data);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRoleChange = async (userId, newRole) => {
+    try {
+      await updateUserRole(userId, newRole);
+      fetchUsers();
+      alert("User role updated successfully");
+    } catch (error) {
+      console.error("Error updating user role:", error);
+      alert("Failed to update user role");
+    }
+  };
+
+  const handleDeactivate = async (userId) => {
+    if (window.confirm("Are you sure you want to deactivate this user?")) {
+      try {
+        await deactivateUser(userId);
+        fetchUsers();
+        alert("User deactivated successfully");
+      } catch (error) {
+        console.error("Error deactivating user:", error);
+        alert("Failed to deactivate user");
+      }
+    }
+  };
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+          <Loading text="Loading dashboard..." />
+        </Box>
+      </DashboardLayout>
+    );
+  }
+
   return (
     <DashboardLayout>
       <Box sx={{ p: 3 }}>
-        <Typography variant="h4" sx={{ mb: 4 }}>
-          Dashboard
+        <Typography variant="h4" component="h1" gutterBottom fontWeight="bold">
+          Admin Dashboard
         </Typography>
-
-        {/* Stats Cards */}
-        <Grid container spacing={3} sx={{ mb: 4 }}>
-          <Grid item xs={12} sm={6} md={3}>
-            <StatCard
-              title="Total Orders"
-              value="1,284"
-              icon={<ShoppingCart sx={{ color: 'primary.main' }} />}
-              color="#1A237E"
-            />
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <StatCard
-              title="Total Users"
-              value="856"
-              icon={<People sx={{ color: 'secondary.main' }} />}
-              color="#FFCA28"
-            />
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <StatCard
-              title="Revenue"
-              value="Rp 45.6M"
-              icon={<AttachMoney sx={{ color: 'success.main' }} />}
-              color="#4CAF50"
-            />
-          </Grid>
-          <Grid item xs={12} sm={6} md={3}>
-            <StatCard
-              title="Products"
-              value="384"
-              icon={<Inventory sx={{ color: 'error.main' }} />}
-              color="#F44336"
-            />
-          </Grid>
-        </Grid>
-
-        {/* Charts */}
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={8}>
-            <Paper sx={{ p: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                Sales Overview
-              </Typography>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={salesData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="month" />
-                  <YAxis />
-                  <Tooltip />
-                  <Bar dataKey="sales" fill="#1A237E" />
-                </BarChart>
-              </ResponsiveContainer>
-            </Paper>
-          </Grid>
-          <Grid item xs={12} md={4}>
-            <Paper sx={{ p: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                Recent Orders
-              </Typography>
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={orderData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip />
-                  <Line type="monotone" dataKey="orders" stroke="#FFCA28" />
-                </LineChart>
-              </ResponsiveContainer>
-            </Paper>
-          </Grid>
-        </Grid>
+        
+        <Box sx={{ mb: 4 }}>
+          <Typography variant="h5" component="h2" sx={{ mb: 2 }} fontWeight="medium">
+            User Management
+          </Typography>
+          <TableContainer component={Paper} elevation={2}>
+            <Table>
+              <TableHead>
+                <TableRow sx={{ backgroundColor: 'primary.light' }}>
+                  <TableCell>ID</TableCell>
+                  <TableCell>Name</TableCell>
+                  <TableCell>Email</TableCell>
+                  <TableCell>Role</TableCell>
+                  <TableCell>Actions</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {users.map((user) => (
+                  <TableRow key={user.id} hover>
+                    <TableCell>{user.id}</TableCell>
+                    <TableCell>{user.name}</TableCell>
+                    <TableCell>{user.email}</TableCell>
+                    <TableCell>
+                      <FormControl size="small" fullWidth>
+                        <Select
+                          value={user.role}
+                          onChange={(e) => handleRoleChange(user.id, e.target.value)}
+                        >
+                          <MenuItem value="buyer">Buyer</MenuItem>
+                          <MenuItem value="seller">Seller</MenuItem>
+                          <MenuItem value="admin">Admin</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </TableCell>
+                    <TableCell>
+                      <Button
+                        variant="contained"
+                        color="error"
+                        size="small"
+                        onClick={() => handleDeactivate(user.id)}
+                      >
+                        Deactivate
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Box>
       </Box>
     </DashboardLayout>
   );

@@ -10,14 +10,15 @@ import {
   IconButton,
   Typography,
   Link,
-  Paper,
   Divider,
+  Alert,
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import Card from '../../components/common/Card';  // Fix the import path
 import Loading from '../../components/common/Loading';
 import PublicLayout from '../../layouts/PublicLayout';
+import axios from 'axios';
 
 const Login = () => {
   const [values, setValues] = useState({
@@ -28,6 +29,7 @@ const Login = () => {
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
   const navigate = useNavigate();
 
   const handleChange = (prop) => (event) => {
@@ -54,6 +56,8 @@ const Login = () => {
     }
     if (!values.password) {
       newErrors.password = 'Password is required';
+    } else if (values.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -61,18 +65,30 @@ const Login = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    if (validateForm()) {
-      setLoading(true);
-      try {
-        // Show loading overlay during API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        console.log('Login successful');
-        navigate('/dashboard'); // Redirect to dashboard after login
-      } catch (error) {
-        console.error('Login failed:', error);
-      } finally {
-        setLoading(false);
-      }
+    if (!validateForm()) return;
+    
+    setLoading(true);
+    setErrorMessage('');
+    
+    try {
+      // API call
+      const response = await axios.post(
+        process.env.REACT_APP_API_URL + '/auth/login/', 
+        { email: values.email, password: values.password }
+      );
+      
+      // Save token to localStorage
+      localStorage.setItem('token', response.data.token);
+      
+      console.log('Login successful');
+      navigate('/dashboard'); // Redirect to dashboard after login
+    } catch (error) {
+      setErrorMessage(
+        error.response?.data?.message || 'Login failed. Please check your credentials.'
+      );
+      console.error('Login failed:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -91,6 +107,11 @@ const Login = () => {
             <Card.Title>Login</Card.Title>
           </Card.Header>
           <Card.Content>
+            {errorMessage && (
+              <Alert severity="error" sx={{ mb: 3 }}>
+                {errorMessage}
+              </Alert>
+            )}
             <Box component="form" onSubmit={handleSubmit}>
               <TextField
                 fullWidth
@@ -145,6 +166,7 @@ const Login = () => {
               fullWidth
               variant="contained"
               disabled={loading}
+              onClick={handleSubmit}
               sx={{ mt: 3, mb: 2 }}
             >
               {loading ? 'Signing in...' : 'Sign In'}

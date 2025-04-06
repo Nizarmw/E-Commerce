@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from "react";
+import { useParams, Link } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import {
   Container,
   Grid,
@@ -11,22 +13,26 @@ import {
   TextField,
   Divider,
   IconButton,
-} from '@mui/material';
+} from "@mui/material";
 import {
   Add as AddIcon,
   Remove as RemoveIcon,
   Favorite,
   FavoriteBorder,
-} from '@mui/icons-material';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Navigation, Thumbs } from 'swiper/modules';
-import 'swiper/css';
-import 'swiper/css/navigation';
-import 'swiper/css/thumbs';
-import { useParams } from 'react-router-dom';
-import { PublicLayout } from '../../layouts';
-import { ProductCard } from '../../components/product';
-import { formatPrice } from '../../utils/formatters';
+} from "@mui/icons-material";
+import { styled } from "@mui/material/styles";
+import { Swiper, SwiperSlide } from "swiper/react";
+import { Navigation, Thumbs } from "swiper/modules";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/thumbs";
+import PublicLayout from "../../layouts/PublicLayout";
+import ReviewForm from "../../components/product/ReviewForm";
+import ReviewList from "../../components/product/ReviewList";
+import { addToCart } from "../../redux/cartSlice";
+import { getProductById, getProductReviews, getRelatedProducts } from "../../services/products";
+import { ProductCard } from "../../components/product";
+import { formatPrice } from "../../utils/formatters";
 
 const TabPanel = ({ children, value, index, ...other }) => (
   <div hidden={value !== index} {...other}>
@@ -40,6 +46,62 @@ const ProductDetail = () => {
   const [tabValue, setTabValue] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const [product, setProduct] = useState(null);
+  const [productImages, setProductImages] = useState([]);
+  const [relatedProducts, setRelatedProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
+  const [reviewsError, setReviewsError] = useState(null);
+
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    const fetchProductData = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const productData = await getProductById(id);
+        setProduct(productData);
+
+        const mockGallery = [
+          productData.imageUrl || "https://via.placeholder.com/600x400?text=Product+Image",
+          "https://via.placeholder.com/600x400?text=Side+View",
+          "https://via.placeholder.com/600x400?text=Back+View",
+          "https://via.placeholder.com/600x400?text=Detail+View",
+        ];
+        setProductImages(mockGallery);
+
+        if (productData.categoryId) {
+          const relatedProductsData = await getRelatedProducts(productData.categoryId, id);
+          setRelatedProducts(relatedProductsData);
+        }
+      } catch (err) {
+        console.error("Error fetching product:", err);
+        setError("Failed to load product. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const fetchReviews = async () => {
+      setReviewsLoading(true);
+      setReviewsError(null);
+      try {
+        const reviewsData = await getProductReviews(id);
+        setReviews(reviewsData);
+      } catch (err) {
+        console.error("Error fetching reviews:", err);
+        setReviewsError("Failed to load reviews.");
+      } finally {
+        setReviewsLoading(false);
+      }
+    };
+
+    fetchProductData();
+    fetchReviews();
+  }, [id]);
 
   const handleQuantityChange = (amount) => {
     const newQuantity = quantity + amount;
@@ -49,7 +111,7 @@ const ProductDetail = () => {
   };
 
   const handleAddToCart = () => {
-    console.log('Adding to cart:', { id, quantity });
+    dispatch(addToCart({ id, quantity }));
   };
 
   const handleTabChange = (event, newValue) => {
@@ -60,74 +122,60 @@ const ProductDetail = () => {
     setIsWishlisted(!isWishlisted);
   };
 
-  // Mock data - replace with API calls
-  const product = {
-    name: 'Product Name',
-    price: 1500000,
-    rating: 4.5,
-    reviewCount: 128,
-    description: 'Detailed product description goes here...',
-    images: [
-      '/path/to/image1.jpg',
-      '/path/to/image2.jpg',
-      '/path/to/image3.jpg',
-    ],
-    specs: [
-      { label: 'Brand', value: 'Brand Name' },
-      { label: 'Material', value: 'Premium Material' },
-      { label: 'Warranty', value: '1 Year' },
-    ],
+  const handleReviewSubmitted = () => {
+    const refreshReviews = async () => {
+      setReviewsLoading(true);
+      try {
+        const refreshedReviews = await getProductReviews(id);
+        setReviews(refreshedReviews);
+      } catch (err) {
+        console.error("Error refreshing reviews:", err);
+      } finally {
+        setReviewsLoading(false);
+      }
+    };
+
+    refreshReviews();
   };
+
+  if (loading) {
+    return <Typography>Loading...</Typography>;
+  }
+
+  if (error) {
+    return <Typography>{error}</Typography>;
+  }
 
   return (
     <PublicLayout>
       <Container maxWidth="lg" sx={{ my: 4 }}>
         <Grid container spacing={4}>
-          {/* Image Gallery */}
           <Grid item xs={12} md={6}>
-            <Box sx={{ position: 'relative' }}>
-              <Swiper
-                navigation
-                thumbs={{ swiper: thumbsSwiper }}
-                modules={[Navigation, Thumbs]}
-              >
-                {product.images.map((image, index) => (
+            <Box sx={{ position: "relative" }}>
+              <Swiper navigation thumbs={{ swiper: thumbsSwiper }} modules={[Navigation, Thumbs]}>
+                {productImages.map((image, index) => (
                   <SwiperSlide key={index}>
-                    <img
-                      src={image}
-                      alt={`${product.name} - ${index + 1}`}
-                      style={{ width: '100%', height: 'auto' }}
-                    />
+                    <img src={image} alt={`${product.name} - ${index + 1}`} style={{ width: "100%", height: "auto" }} />
                   </SwiperSlide>
                 ))}
               </Swiper>
-              <Swiper
-                onSwiper={setThumbsSwiper}
-                spaceBetween={10}
-                slidesPerView={4}
-                watchSlidesProgress
-              >
-                {product.images.map((image, index) => (
+              <Swiper onSwiper={setThumbsSwiper} spaceBetween={10} slidesPerView={4} watchSlidesProgress>
+                {productImages.map((image, index) => (
                   <SwiperSlide key={index}>
-                    <img
-                      src={image}
-                      alt={`Thumbnail ${index + 1}`}
-                      style={{ width: '100%', cursor: 'pointer' }}
-                    />
+                    <img src={image} alt={`Thumbnail ${index + 1}`} style={{ width: "100%", cursor: "pointer" }} />
                   </SwiperSlide>
                 ))}
               </Swiper>
             </Box>
           </Grid>
 
-          {/* Product Info */}
           <Grid item xs={12} md={6}>
             <Box>
               <Typography variant="h4" gutterBottom>
                 {product.name}
               </Typography>
 
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+              <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
                 <Rating value={product.rating} precision={0.5} readOnly />
                 <Typography variant="body2" sx={{ ml: 1 }}>
                   ({product.reviewCount} reviews)
@@ -138,20 +186,12 @@ const ProductDetail = () => {
                 {formatPrice(product.price)}
               </Typography>
 
-              <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', mr: 2 }}>
-                  <IconButton
-                    onClick={() => handleQuantityChange(-1)}
-                    disabled={quantity <= 1}
-                  >
+              <Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
+                <Box sx={{ display: "flex", alignItems: "center", mr: 2 }}>
+                  <IconButton onClick={() => handleQuantityChange(-1)} disabled={quantity <= 1}>
                     <RemoveIcon />
                   </IconButton>
-                  <TextField
-                    size="small"
-                    value={quantity}
-                    inputProps={{ readOnly: true }}
-                    sx={{ width: 60, mx: 1 }}
-                  />
+                  <TextField size="small" value={quantity} inputProps={{ readOnly: true }} sx={{ width: 60, mx: 1 }} />
                   <IconButton onClick={() => handleQuantityChange(1)}>
                     <AddIcon />
                   </IconButton>
@@ -162,20 +202,13 @@ const ProductDetail = () => {
                 </IconButton>
               </Box>
 
-              <Button
-                variant="contained"
-                size="large"
-                fullWidth
-                onClick={handleAddToCart}
-                sx={{ mb: 3 }}
-              >
+              <Button variant="contained" size="large" fullWidth onClick={handleAddToCart} sx={{ mb: 3 }}>
                 Add to Cart
               </Button>
 
               <Divider sx={{ my: 3 }} />
 
-              {/* Tabs */}
-              <Box sx={{ width: '100%' }}>
+              <Box sx={{ width: "100%" }}>
                 <Tabs value={tabValue} onChange={handleTabChange}>
                   <Tab label="Description" />
                   <Tab label="Specifications" />
@@ -190,7 +223,7 @@ const ProductDetail = () => {
                   <Grid container spacing={2}>
                     {product.specs.map((spec, index) => (
                       <Grid item xs={12} key={index}>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <Box sx={{ display: "flex", justifyContent: "space-between" }}>
                           <Typography variant="body2" color="text.secondary">
                             {spec.label}
                           </Typography>
@@ -202,23 +235,30 @@ const ProductDetail = () => {
                 </TabPanel>
 
                 <TabPanel value={tabValue} index={2}>
-                  {/* Reviews component would go here */}
-                  <Typography>Reviews coming soon...</Typography>
+                  {reviewsLoading ? (
+                    <Typography>Loading reviews...</Typography>
+                  ) : reviewsError ? (
+                    <Typography>{reviewsError}</Typography>
+                  ) : (
+                    <>
+                      <ReviewList reviews={reviews} />
+                      <ReviewForm productId={id} onReviewSubmitted={handleReviewSubmitted} />
+                    </>
+                  )}
                 </TabPanel>
               </Box>
             </Box>
           </Grid>
         </Grid>
 
-        {/* Related Products */}
         <Box sx={{ mt: 8 }}>
           <Typography variant="h5" gutterBottom>
             Related Products
           </Typography>
           <Grid container spacing={3}>
-            {[1, 2, 3, 4].map((item) => (
-              <Grid item xs={12} sm={6} md={3} key={item}>
-                <ProductCard />
+            {relatedProducts.map((item) => (
+              <Grid item xs={12} sm={6} md={3} key={item.id}>
+                <ProductCard product={item} />
               </Grid>
             ))}
           </Grid>
