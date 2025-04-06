@@ -10,7 +10,7 @@ export const fetchCartFromBackend = createAsyncThunk(
       if (!isAuthenticated()) return [];
       
       const token = localStorage.getItem("token");
-      const response = await axios.get("http://localhost:8080/api/cart", {
+      const response = await axios.get(process.env.REACT_APP_API_URL + "/api/cart", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -31,7 +31,7 @@ export const syncCartWithBackend = createAsyncThunk(
       
       const token = localStorage.getItem("token");
       await axios.post(
-        "http://localhost:8080/api/cart/sync",
+        process.env.REACT_APP_API_URL + "/api/cart/sync",
         { items: cart },
         {
           headers: {

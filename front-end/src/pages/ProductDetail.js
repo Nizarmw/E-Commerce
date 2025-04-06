@@ -120,7 +120,7 @@ export default function ProductDetail() {
       setLoading(true);
       setError(null);
       try {
-        const response = await axios.get(`http://localhost:8080/api/products/${id}`);
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/products/${id}`);
         setProduct(response.data);
         
         // Create mock gallery images for demo purposes
@@ -135,7 +135,7 @@ export default function ProductDetail() {
         
         // Fetch related products based on category
         if (response.data.categoryId) {
-          const relatedResponse = await axios.get(`http://localhost:8080/api/products?category=${response.data.categoryId}&limit=8`);
+          const relatedResponse = await axios.get(`${process.env.REACT_APP_API_URL}/api/products?category=${response.data.categoryId}&limit=8`);
           // Filter out the current product
           setRelatedProducts(relatedResponse.data.filter(p => p.id !== id));
         }
@@ -151,7 +151,7 @@ export default function ProductDetail() {
       setReviewsLoading(true);
       setReviewsError(null);
       try {
-        const response = await axios.get(`http://localhost:8080/api/products/${id}/reviews`);
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/products/${id}/reviews`);
         setReviews(response.data);
       } catch (err) {
         console.error("Error fetching reviews:", err);
@@ -187,7 +187,7 @@ export default function ProductDetail() {
     const fetchReviews = async () => {
       setReviewsLoading(true);
       try {
-        const response = await axios.get(`http://localhost:8080/api/products/${id}/reviews`);
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/products/${id}/reviews`);
         setReviews(response.data);
       } catch (err) {
         console.error("Error refreshing reviews:", err);

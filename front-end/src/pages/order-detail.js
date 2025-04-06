@@ -25,7 +25,7 @@ export default function OrderDetail() {
       
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get(`http://localhost:8080/api/orders/${id}`, {
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/orders/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -65,7 +65,7 @@ export default function OrderDetail() {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.post(
-        `http://localhost:8080/api/orders/${id}/pay`,
+        `${process.env.REACT_APP_API_URL}/api/orders/${id}/pay`,
         {},
         {
           headers: {
@@ -79,7 +79,7 @@ export default function OrderDetail() {
         window.location.href = response.data.paymentUrl;
       } else {
         // Otherwise refresh the order
-        const updatedOrder = await axios.get(`http://localhost:8080/api/orders/${id}`, {
+        const updatedOrder = await axios.get(`${process.env.REACT_APP_API_URL}/api/orders/${id}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -102,7 +102,7 @@ export default function OrderDetail() {
     try {
       const token = localStorage.getItem('token');
       await axios.post(
-        `http://localhost:8080/api/orders/${id}/cancel`,
+        `${process.env.REACT_APP_API_URL}/api/orders/${id}/cancel`,
         {},
         {
           headers: {
@@ -112,7 +112,7 @@ export default function OrderDetail() {
       );
       
       // Refresh order data
-      const updatedOrder = await axios.get(`http://localhost:8080/api/orders/${id}`, {
+      const updatedOrder = await axios.get(`${process.env.REACT_APP_API_URL}/api/orders/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -278,7 +278,7 @@ export default function OrderDetail() {
                         try {
                           const token = localStorage.getItem('token');
                           await axios.post(
-                            `http://localhost:8080/api/orders/${id}/complete`,
+                            `${process.env.REACT_APP_API_URL}/api/orders/${id}/complete`,
                             {},
                             {
                               headers: {
@@ -288,7 +288,7 @@ export default function OrderDetail() {
                           );
                           
                           // Refresh order data
-                          const updatedOrder = await axios.get(`http://localhost:8080/api/orders/${id}`, {
+                          const updatedOrder = await axios.get(`${process.env.REACT_APP_API_URL}/api/orders/${id}`, {
                             headers: {
                               Authorization: `Bearer ${token}`,
                             },

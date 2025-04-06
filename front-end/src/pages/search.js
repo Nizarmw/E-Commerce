@@ -29,13 +29,13 @@ const SearchPage = () => {
         if (minPrice) params.append('min_price', minPrice);
         if (maxPrice) params.append('max_price', maxPrice);
         
-        const response = await axios.get(`http://localhost:8080/api/products/search?${params.toString()}`);
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/products/search?${params.toString()}`);
         setProducts(response.data);
       } catch (error) {
         console.error('Error fetching products:', error);
         setError('Failed to fetch products. Please try again later.');
         // Fall back to all products if search fails
-        const allProducts = await axios.get('http://localhost:8080/api/products');
+        const allProducts = await axios.get(process.env.REACT_APP_API_URL + '/api/products');
         setProducts(allProducts.data);
       } finally {
         setLoading(false);

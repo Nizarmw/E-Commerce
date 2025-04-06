@@ -27,7 +27,7 @@ const ReviewForm = ({ productId, onReviewSubmitted }) => {
     try {
       const token = localStorage.getItem('token');
       await axios.post(
-        'http://localhost:8080/api/reviews',
+        process.env.REACT_APP_API_URL + '/api/reviews',
         {
           productId,
           rating,

@@ -47,7 +47,7 @@ export default function Checkout() {
     try {
       const token = localStorage.getItem("token");
       const response = await axios.post(
-        "http://localhost:8080/api/orders",
+        process.env.REACT_APP_API_URL + "/api/orders",
         {
           items: cart.map((item) => ({
             productId: item.id,
