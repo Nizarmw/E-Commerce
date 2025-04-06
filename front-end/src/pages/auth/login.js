@@ -175,7 +175,7 @@ const Login = () => {
               </Link>
             </Grid>
             <Grid item>
-              <Link component={RouterLink} to="/auth/register" variant="body2">
+              <Link component={RouterLink} to="/register" variant="body2">
                 {"Don't have an account? Sign Up"}
               </Link>
             </Grid>

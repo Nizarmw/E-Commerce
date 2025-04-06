@@ -1,57 +1,181 @@
-import { useState } from "react";
-import axios from "axios";
-import { useNavigate } from "react-router-dom";
+import React, { useState } from 'react';
+import { Container, Box, Avatar, Typography, TextField, Button, Grid, Link, Paper, InputAdornment, IconButton, CircularProgress, Alert } from '@mui/material';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import Visibility from '@mui/icons-material/Visibility';
+import VisibilityOff from '@mui/icons-material/VisibilityOff';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
-export default function Register() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+const Register = () => {
   const navigate = useNavigate();
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    password: '',
+  });
+  const [errors, setErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
-  const handleRegister = async (e) => {
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!formData.name) {
+      newErrors.name = 'Name is required';
+    }
+    if (!formData.email) {
+      newErrors.email = 'Email is required';
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = 'Email is invalid';
+    }
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } 
+    // else if (formData.password.length < 6) {
+    //   newErrors.password = 'Password must be at least 6 characters';
+    // }
+    
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    
+    // Clear error for this field when user types
+    if (errors[name]) {
+      setErrors({ ...errors, [name]: '' });
+    }
+  };
+
+  const handleClickShowPassword = () => {
+    setShowPassword(!showPassword);
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!validateForm()) return;
+    
+    setLoading(true);
+    setErrorMessage('');
+    
     try {
-      await axios.post(process.env.REACT_APP_API_URL + "/auth/register/", {
-        name,
-        email,
-        password,
-      });
-      alert("Registrasi berhasil! Silakan login.");
-      navigate("/login");
-    } catch (error) {
-      alert("Registrasi gagal, coba lagi!");
+      await axios.post(process.env.REACT_APP_API_URL + '/auth/register', formData);
+      alert('Registration successful! Please log in.');
+      navigate('/login');
+    } catch (err) {
+      setErrorMessage(
+        err.response?.data?.message || 'Registration failed. Please try again.'
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="p-8">
-      <h2 className="text-2xl font-bold mb-4">Register</h2>
-      <form onSubmit={handleRegister}>
-        <input
-          type="text"
-          placeholder="Nama"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="border p-2 w-full mb-2"
-        />
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="border p-2 w-full mb-2"
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="border p-2 w-full mb-2"
-        />
-        <button type="submit" className="bg-green-500 text-white px-4 py-2">
-          Register
-        </button>
-      </form>
-    </div>
+    <Container component="main" maxWidth="xs">
+      <Paper
+        elevation={3}
+        sx={{
+          marginTop: 8,
+          marginBottom: 8,
+          p: 4,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          borderRadius: 2,
+        }}
+      >
+        <Avatar sx={{ m: 1, bgcolor: 'secondary.main' }}>
+          <PersonAddIcon />
+        </Avatar>
+        <Typography component="h1" variant="h5">
+          Sign Up
+        </Typography>
+        
+        {errorMessage && (
+          <Alert severity="error" sx={{ width: '100%', mt: 2 }}>
+            {errorMessage}
+          </Alert>
+        )}
+        
+        <Box component="form" onSubmit={handleSubmit} noValidate sx={{ mt: 1, width: '100%' }}>
+          <TextField
+            margin="normal"
+            required
+            fullWidth
+            id="name"
+            label="Name"
+            name="name"
+            autoFocus
+            value={formData.name}
+            onChange={handleChange}
+            error={Boolean(errors.name)}
+            helperText={errors.name}
+          />
+          <TextField
+            margin="normal"
+            required
+            fullWidth
+            id="email"
+            label="Email Address"
+            name="email"
+            autoComplete="email"
+            value={formData.email}
+            onChange={handleChange}
+            error={Boolean(errors.email)}
+            helperText={errors.email}
+          />
+          <TextField
+            margin="normal"
+            required
+            fullWidth
+            name="password"
+            label="Password"
+            type={showPassword ? 'text' : 'password'}
+            id="password"
+            autoComplete="new-password"
+            value={formData.password}
+            onChange={handleChange}
+            error={Boolean(errors.password)}
+            helperText={errors.password}
+            InputProps={{
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    aria-label="toggle password visibility"
+                    onClick={handleClickShowPassword}
+                    edge="end"
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            }}
+          />
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            sx={{ mt: 3, mb: 2, py: 1.5 }}
+            disabled={loading}
+          >
+            {loading ? <CircularProgress size={24} /> : 'Sign Up'}
+          </Button>
+          <Grid container justifyContent="flex-end">
+            <Grid item>
+              <Link component={RouterLink} to="/login" variant="body2">
+                Already have an account? Sign In
+              </Link>
+            </Grid>
+          </Grid>
+        </Box>
+      </Paper>
+    </Container>
   );
-}
+};
+
+export default Register;

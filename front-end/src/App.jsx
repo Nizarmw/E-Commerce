@@ -14,6 +14,7 @@ import Search from './pages/search';
 import Admin from './pages/admin';
 import theme from './theme';
 import Login from './pages/auth/login.js';
+import Register from './pages/auth/register.js';
 // 404 Page
 const NotFound = () => <Box p={3}>404 - Page Not Found</Box>;
 
@@ -37,6 +38,7 @@ function App() {
               <Route path="/search" element={<Search />} />
               <Route path="/admin" element={<Admin />} />
               <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </Layout>
