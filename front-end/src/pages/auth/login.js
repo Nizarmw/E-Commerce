@@ -74,7 +74,7 @@ const Login = () => {
     
     try {
       // Replace with your actual login endpoint
-      const response = await axios.post(process.env.REACT_APP_API_URL + '/api/auth/login', formData);
+      const response = await axios.post(process.env.REACT_APP_API_URL + '/auth/login/', formData);
       
       // Save token to localStorage
       localStorage.setItem('token', response.data.token);

@@ -19,7 +19,7 @@ export default function Admin() {
       // Verify if user is admin
       try {
         const token = localStorage.getItem("token");
-        const response = await axios.get(process.env.REACT_APP_API_URL + "/api/users/role", {
+        const response = await axios.get(process.env.REACT_APP_API_URL + "/users/role/", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -46,7 +46,7 @@ export default function Admin() {
   const fetchUsers = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(process.env.REACT_APP_API_URL + "/api/users", {
+      const response = await axios.get(process.env.REACT_APP_API_URL + "/users", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -63,7 +63,7 @@ export default function Admin() {
     try {
       const token = localStorage.getItem("token");
       await axios.put(
-        `${process.env.REACT_APP_API_URL}/api/users/${userId}/role`,
+        `${process.env.REACT_APP_API_URL}/users/${userId}/role`,
         { role: newRole },
         {
           headers: {
@@ -86,7 +86,7 @@ export default function Admin() {
       try {
         const token = localStorage.getItem("token");
         await axios.put(
-          `${process.env.REACT_APP_API_URL}/api/users/${userId}/deactivate`,
+          `${process.env.REACT_APP_API_URL}/users/${userId}/deactivate`,
           {},
           {
             headers: {

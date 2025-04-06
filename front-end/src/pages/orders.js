@@ -25,7 +25,7 @@ export default function OrderHistory() {
       
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get(process.env.REACT_APP_API_URL + '/api/orders', {
+        const response = await axios.get(process.env.REACT_APP_API_URL + '/orders/', {
           headers: {
             Authorization: `Bearer ${token}`,
           },

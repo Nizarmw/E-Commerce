@@ -24,7 +24,7 @@ const Products = () => {
   React.useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await fetch('/api/categories'); // Replace with your API endpoint
+        const response = await fetch('/categories/'); // Replace with your API endpoint
         const data = await response.json();
         setCategories(data);
       } catch (error) {

@@ -55,7 +55,7 @@ const Home = () => {
     const fetchProducts = async () => {
       try {
         // Replace with your actual API endpoint
-        const response = await axios.get(process.env.REACT_APP_API_URL + '/api/products');
+        const response = await axios.get(process.env.REACT_APP_API_URL + '/products/');
         setProducts(response.data || []); // Use empty array as fallback
         setLoading(false);
       } catch (error) {

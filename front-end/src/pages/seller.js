@@ -30,7 +30,7 @@ export default function Seller() {
       try {
         // Verify seller role
         const token = localStorage.getItem("token");
-        const response = await axios.get(process.env.REACT_APP_API_URL + "/api/users/role", {
+        const response = await axios.get(process.env.REACT_APP_API_URL + "/users/role/", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -58,7 +58,7 @@ export default function Seller() {
   const fetchProducts = async () => {
     try {
       const token = localStorage.getItem("token");
-      const response = await axios.get(process.env.REACT_APP_API_URL + "/api/products/seller", {
+      const response = await axios.get(process.env.REACT_APP_API_URL + "/products/seller/", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -73,7 +73,7 @@ export default function Seller() {
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get(process.env.REACT_APP_API_URL + "/api/categories");
+      const response = await axios.get(process.env.REACT_APP_API_URL + "/categories/");
       setCategories(response.data);
     } catch (error) {
       console.error("Error fetching categories:", error);
@@ -100,7 +100,7 @@ export default function Seller() {
       if (isEditing) {
         // Update existing product
         await axios.put(
-          `${process.env.REACT_APP_API_URL}/api/products/${currentProductId}`,
+          `${process.env.REACT_APP_API_URL}/products/${currentProductId}/`,
           formData,
           { headers }
         );
@@ -108,7 +108,7 @@ export default function Seller() {
       } else {
         // Create new product
         await axios.post(
-          process.env.REACT_APP_API_URL + "/api/products",
+          process.env.REACT_APP_API_URL + "/products/",
           formData,
           { headers }
         );
@@ -148,7 +148,7 @@ export default function Seller() {
     if (window.confirm("Are you sure you want to delete this product?")) {
       try {
         const token = localStorage.getItem("token");
-        await axios.delete(`${process.env.REACT_APP_API_URL}/api/products/${productId}`, {
+        await axios.delete(`${process.env.REACT_APP_API_URL}/products/${productId}/`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

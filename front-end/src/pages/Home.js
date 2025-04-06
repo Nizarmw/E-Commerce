@@ -6,7 +6,7 @@ export default function Home() {
   const [products, setProducts] = useState([]);
 
   useEffect(() => {
-    axios.get(process.env.REACT_APP_API_URL + "/api/products") // Mengambil data produk dari backend
+    axios.get(process.env.REACT_APP_API_URL + "/products/") // Mengambil data produk dari backend
       .then(res => setProducts(res.data))
       .catch(err => console.error(err));
   }, []);
