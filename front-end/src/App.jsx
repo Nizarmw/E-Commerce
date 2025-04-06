@@ -1,48 +1,103 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ThemeProvider, CssBaseline, Box } from '@mui/material';
-import Layout from './components/Layout/Layout';
-import Home from './pages/Home.jsx';
-import Products from './pages/Products.jsx';
-import ProductDetail from './pages/ProductDetail.js';
-import Cart from './components/Cart';
-import Checkout from './pages/checkout';
-import Orders from './pages/Orders.jsx';
-import OrderDetail from './pages/order-detail';
-import Dashboard from './pages/Dashboard.jsx';
-import Search from './pages/search';
-import Admin from './pages/admin';
-import theme from './theme';
+import { Routes, Route } from 'react-router-dom';
+import Home from './pages/public/Home';
+import Cart from './pages/public/Cart';  // Add this import
+import Products from './pages/public/Products';  // Add this import
+import Login from './pages/auth/Login';  // Add this import
+import Register from './pages/auth/Register';  // Add this import
+import ForgotPassword from './pages/auth/ForgotPassword';  // Add this import
+import SearchResults from './pages/public/SearchResults';  // Add this import
+import { ThemeProvider, createTheme } from '@mui/material';
+import './styles/fonts.css';  // Add this import
 
-// 404 Page
-const NotFound = () => <Box p={3}>404 - Page Not Found</Box>;
+const theme = createTheme({
+  palette: {
+    primary: {
+      main: '#1A237E', // Navy Blue
+    },
+    secondary: {
+      main: '#FFCA28', // Soft Gold/Mustard
+    },
+    background: {
+      default: '#fff',
+      paper: '#fff',
+    },
+  },
+  typography: {
+    fontFamily: 'Open Sans, sans-serif',
+    h1: {
+      fontFamily: 'Poppins, sans-serif',
+    },
+    h2: {
+      fontFamily: 'Poppins, sans-serif',
+    },
+    h3: {
+      fontFamily: 'Poppins, sans-serif',
+    },
+    h4: {
+      fontFamily: 'Poppins, sans-serif',
+    },
+    h5: {
+      fontFamily: 'Poppins, sans-serif',
+    },
+    h6: {
+      fontFamily: 'Poppins, sans-serif',
+    },
+    subtitle1: {
+      fontFamily: 'Poppins, sans-serif',
+    },
+    subtitle2: {
+      fontFamily: 'Poppins, sans-serif',
+    },
+  },
+  components: {
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: 8,
+          textTransform: 'none',
+        },
+        containedPrimary: {
+          '&:hover': {
+            backgroundColor: '#151875', // Slightly darker navy
+          },
+        },
+      },
+    },
+    MuiTextField: {
+      styleOverrides: {
+        root: {
+          '& .MuiOutlinedInput-root': {
+            borderRadius: 8,
+          },
+        },
+      },
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          borderRadius: 12,
+          boxShadow: '0 2px 8px rgba(26, 35, 126, 0.1)',
+        },
+      },
+    },
+  },
+});
 
-function App() {
+const App = () => {
   return (
     <ThemeProvider theme={theme}>
-      <CssBaseline />
-      <Router>
-        <Box sx={{ backgroundColor: 'background.default', minHeight: '100vh' }}>
-          <Layout>
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/products" element={<Products />} />
-              <Route path="/products/:id" element={<ProductDetail />} />
-              {/* Removed redundant route for product details */}
-              <Route path="/cart" element={<Cart />} />
-              <Route path="/checkout" element={<Checkout />} />
-              <Route path="/orders" element={<Orders />} />
-              <Route path="/order/:id" element={<OrderDetail />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/search" element={<Search />} />
-              <Route path="/admin" element={<Admin />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Layout>
-        </Box>
-      </Router>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/cart" element={<Cart />} />  {/* Add this route */}
+        <Route path="/products" element={<Products />} />  {/* Add this route */}
+        <Route path="/login" element={<Login />} />  {/* Add this route */}
+        <Route path="/register" element={<Register />} />  {/* Add this route */}
+        <Route path="/forgot-password" element={<ForgotPassword />} />  {/* Add this route */}
+        <Route path="/search" element={<SearchResults />} />  {/* Add this route */}
+      </Routes>
     </ThemeProvider>
   );
-}
+};
 
 export default App;
