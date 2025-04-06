@@ -42,9 +42,10 @@ const Login = () => {
     
     if (!formData.password) {
       newErrors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
-    }
+    } 
+    // else if (formData.password.length < 6) {
+    //   newErrors.password = 'Password must be at least 6 characters';
+    // }
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -74,7 +75,7 @@ const Login = () => {
     
     try {
       // Replace with your actual login endpoint
-      const response = await axios.post(process.env.REACT_APP_API_URL + '/auth/login/', formData);
+      const response = await axios.post(process.env.REACT_APP_API_URL + '/auth/login', formData);
       
       // Save token to localStorage
       localStorage.setItem('token', response.data.token);
