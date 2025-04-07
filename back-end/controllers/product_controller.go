@@ -3,21 +3,35 @@ package controllers
 import (
 	"ecommerce-backend/models"
 	"ecommerce-backend/services"
+	"log"
+
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
 
 func CreateProduct(c *gin.Context) {
-	var product models.Product
+	name := c.PostForm("name")
+	description := c.PostForm("description")
+	priceStr := c.PostForm("price")
+	stockStr := c.PostForm("stock")
+	categoryID := c.PostForm("category_id")
 
-	if err := c.ShouldBindJSON(&product); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON format"})
+	if categoryID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "CategoryID is required"})
 		return
 	}
 
-	if product.CategoryID == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "CategoryID is required"})
+	price, err := strconv.ParseFloat(priceStr, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid price"})
+		return
+	}
+
+	stock, err := strconv.Atoi(stockStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid stock"})
 		return
 	}
 
@@ -26,7 +40,29 @@ func CreateProduct(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
-	product.SellerID = userID.(string)
+
+	file, err := c.FormFile("image_url")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Image file is required"})
+		return
+	}
+
+	supa := services.NewSupabaseStorage()
+	imageURL, err := supa.Upload(file)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to upload image"})
+		return
+	}
+
+	product := models.Product{
+		Name:        name,
+		Description: description,
+		Price:       price,
+		Stock:       stock,
+		SellerID:    userID.(string),
+		CategoryID:  categoryID,
+		ImageURL:    imageURL,
+	}
 
 	if err := services.CreateProduct(&product); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -76,17 +112,47 @@ func UpdateProduct(c *gin.Context) {
 		return
 	}
 
-	var updateData models.Product
-	if err := c.ShouldBindJSON(&updateData); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+	name := c.PostForm("name")
+	description := c.PostForm("description")
+	priceStr := c.PostForm("price")
+	stockStr := c.PostForm("stock")
+	categoryID := c.PostForm("category_id")
+
+	price, err := strconv.ParseFloat(priceStr, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid price"})
+		return
+	}
+	stock, err := strconv.Atoi(stockStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid stock"})
 		return
 	}
 
-	existingProduct.Name = updateData.Name
-	existingProduct.Description = updateData.Description
-	existingProduct.Price = updateData.Price
-	existingProduct.Stock = updateData.Stock
-	existingProduct.CategoryID = updateData.CategoryID
+	existingProduct.Name = name
+	existingProduct.Description = description
+	existingProduct.Price = price
+	existingProduct.Stock = stock
+	existingProduct.CategoryID = categoryID
+
+	file, err := c.FormFile("image_url")
+	if err != nil {
+		log.Println("Tidak ada file dikirim:", err)
+	} else {
+		log.Println("File ditemukan:", file.Filename)
+
+		supa := services.NewSupabaseStorage()
+		_ = supa.Delete(existingProduct.ImageURL)
+
+		imageURL, err := supa.Upload(file)
+		if err != nil {
+			log.Println("Gagal upload:", err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to upload image"})
+			return
+		}
+
+		existingProduct.ImageURL = imageURL
+	}
 
 	if err := services.UpdateProduct(existingProduct); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to update product"})

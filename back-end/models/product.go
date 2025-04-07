@@ -8,15 +8,17 @@ import (
 )
 
 type Product struct {
-	ID          string    `gorm:"type:uuid;primaryKey" json:"id"`
-	Name        string    `gorm:"size:255;not null" json:"name"`
-	Description string    `gorm:"type:text" json:"description"`
-	Price       float64   `gorm:"not null" json:"price"`
-	Stock       int       `gorm:"not null" json:"stock"`
-	SellerID    string    `gorm:"type:uuid;not null" json:"seller_id"`
-	CategoryID  string    `gorm:"type:uuid;not null" json:"category_id"`
-	CreatedAt   time.Time `gorm:"autoCreateTime" json:"created_at"`
-	UpdatedAt   time.Time `gorm:"autoUpdateTime" json:"updated_at"`
+	ID          string  `gorm:"type:uuid;primaryKey" json:"id"`
+	Name        string  `gorm:"size:255;not null" json:"name"`
+	Description string  `gorm:"type:text" json:"description"`
+	Price       float64 `gorm:"not null" json:"price"`
+	Stock       int     `gorm:"not null" json:"stock"`
+	ImageURL    string  `gorm:"type:text" json:"image_url"`
+
+	SellerID   string    `gorm:"type:uuid;not null" json:"seller_id"`
+	CategoryID string    `gorm:"type:uuid;not null" json:"category_id"`
+	CreatedAt  time.Time `gorm:"autoCreateTime" json:"created_at"`
+	UpdatedAt  time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 
 	SellerName   string `gorm:"-" json:"-"`
 	CategoryName string `gorm:"-" json:"-"`
