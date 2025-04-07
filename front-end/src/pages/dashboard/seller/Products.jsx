@@ -14,7 +14,7 @@ import {
   Add,
   Visibility,
 } from '@mui/icons-material';
-import { DashboardLayout } from '../../../layouts';
+import DashboardLayout from '../../../layouts/DashboardLayout';
 import { formatPrice } from '../../../utils/formatters';
 
 const SellerProducts = () => {

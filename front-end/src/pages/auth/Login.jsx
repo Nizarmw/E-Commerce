@@ -72,22 +72,27 @@ const Login = () => {
     setErrorMessage('');
     
     try {
-      // API call
-      const response = await api.post(
-      '/auth/login', 
-        { email: values.email, password: values.password }
-      );
+      const response = await api.post('/auth/login', {
+        email: values.email,
+        password: values.password
+      });
       
       // Save token to localStorage
       localStorage.setItem('token', response.data.token);
       
-      console.log('Login successful');
-      navigate('/dashboard'); // Redirect to dashboard after login
+      // Redirect based on user role
+      const role = response.data.user.role;
+      if (role === 'admin') {
+        navigate('/dashboard');
+      } else if (role === 'seller') {
+        navigate('/dashboard/seller');
+      } else {
+        navigate('/');
+      }
     } catch (error) {
       setErrorMessage(
         error.response?.data?.message || 'Login failed. Please check your credentials.'
       );
-      console.error('Login failed:', error);
     } finally {
       setLoading(false);
     }

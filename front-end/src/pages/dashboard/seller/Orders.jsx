@@ -16,7 +16,7 @@ import {
   LocalShipping,
 } from '@mui/icons-material';
 import { DataGrid } from '@mui/x-data-grid';
-import { DashboardLayout } from '../../../layouts';
+import DashboardLayout from '../../../layouts/DashboardLayout';
 import { formatPrice } from '../../../utils/formatters';
 
 const Orders = () => {

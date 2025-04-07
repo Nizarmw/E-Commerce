@@ -9,6 +9,11 @@ import ForgotPassword from './pages/auth/ForgotPassword';  // Add this import
 import SearchResults from './pages/public/Search';  // Add this import
 import OrderHistory from './pages/public/OrderHistory';
 import OrderDetail from './pages/public/OrderDetail';
+import Dashboard from "./pages/dashboard/Dashboard";
+import Seller from "./pages/dashboard/Seller";
+import SellerProducts from "./pages/dashboard/seller/Products";  // Updated path
+import SellerOrders from "./pages/dashboard/seller/Orders";     // Updated path
+import Settings from "./pages/dashboard/Settings";
 import { ThemeProvider, createTheme } from '@mui/material';
 import './styles/fonts.css';  // Add this import
 
@@ -99,6 +104,13 @@ const App = () => {
         <Route path="/search" element={<SearchResults />} />  {/* Add this route */}
         <Route path="/orders" element={<OrderHistory />} />
         <Route path="/order/:id" element={<OrderDetail />} />
+
+        {/* Dashboard Routes */}
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard/seller" element={<Seller />} />
+        <Route path="/dashboard/seller/products" element={<SellerProducts />} />
+        <Route path="/dashboard/seller/orders" element={<SellerOrders />} />
+        <Route path="/dashboard/settings" element={<Settings />} />
       </Routes>
     </ThemeProvider>
   );

@@ -1,39 +1,41 @@
-import axios from 'axios';
+import api from './api';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+export const isAuthenticated = () => {
+  return localStorage.getItem('token') !== null;
+};
 
-/**
- * Memeriksa role pengguna dari API
- * @returns {Promise<Object>} - Data role pengguna
- */
 export const getUserRole = async () => {
   try {
-    const token = localStorage.getItem('token');
-    const response = await axios.get(`${API_URL}/users/role/`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    return response.data;
+    const response = await api.get('/users/me');
+    return response.data.role;
   } catch (error) {
-    console.error('Error mengambil role pengguna:', error);
     throw error;
   }
 };
 
-/**
- * Memeriksa apakah pengguna terautentikasi
- * @returns {boolean} - Status autentikasi
- */
-export const isAuthenticated = () => {
-  const token = localStorage.getItem('token');
-  return !!token; // Mengembalikan true jika token ada
+export const getUsers = async () => {
+  try {
+    const response = await api.get('/users');
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
 };
 
-/**
- * Logout pengguna
- */
-export const logout = () => {
-  localStorage.removeItem('token');
-  // Dapat ditambahkan logika lain seperti menghapus item lain dari localStorage
+export const updateUserRole = async (userId, role) => {
+  try {
+    const response = await api.put(`/users/${userId}/role`, { role });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const deactivateUser = async (userId) => {
+  try {
+    const response = await api.put(`/users/${userId}/deactivate`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
 };
