@@ -18,6 +18,7 @@ import Loading from '../../components/common/Loading';
 import PublicLayout from '../../layouts/PublicLayout';
 import axios from 'axios';
 import api from '../../services/api'; // Adjust the import path as necessary
+import { API_URL } from '../../services/products';
 
 const Register = () => {
   const [values, setValues] = useState({
@@ -66,7 +67,7 @@ const Register = () => {
       
       try {
         // API call from register.js
-        await api.post('/auth/register', {
+        await axios.post(API_URL + '/auth/register', {
           name: values.fullName,
           email: values.email,
           password: values.password

@@ -20,6 +20,7 @@ import Loading from '../../components/common/Loading';
 import PublicLayout from '../../layouts/PublicLayout';
 import axios from 'axios';
 import api from '../../services/api'; // Adjust the import path as necessary
+import { API_URL } from '../../services/products';
 
 const Login = () => {
   const [values, setValues] = useState({
@@ -57,9 +58,10 @@ const Login = () => {
     }
     if (!values.password) {
       newErrors.password = 'Password is required';
-    } else if (values.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
-    }
+    } 
+    // else if (values.password.length < 6) {
+    //   newErrors.password = 'Password must be at least 6 characters';
+    // }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -73,8 +75,7 @@ const Login = () => {
     
     try {
       // API call
-      const response = await api.post(
-      '/auth/login', 
+      const response = await axios.post(API_URL +  '/auth/login', 
         { email: values.email, password: values.password }
       );
       
