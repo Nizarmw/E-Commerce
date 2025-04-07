@@ -19,8 +19,8 @@
 - [x] Implementasi halaman Login
 - [x] Implementasi halaman Register
 - [x] Implementasi Forgot Password
-- [ ] Setup JWT authentication
-- [ ] Integrasi dengan backend auth service
+- [x] Setup JWT authentication
+- [x] Integrasi dengan backend auth service
 
 ## 4. Halaman Publik
 - [x] Homepage
@@ -52,17 +52,17 @@
 ## 7. Fitur Buyer (EC-F-05)
 - [x] Shopping Cart
 - [x] Checkout Process
-- [ ] Payment Integration
-- [ ] Order History
+- [x] Payment Integration
+- [x] Order History
 - [x] Review & Rating System
 
 ## 8. Integrasi & Testing
-- [ ] Integrasi dengan backend services
-- [ ] Error handling
-- [ ] Loading states
-- [ ] Form validation
-- [ ] Unit testing
-- [ ] Integration testing
+- [x] Integrasi dengan backend services
+- [x] Error handling
+- [x] Loading states
+- [x] Form validation
+- [x] Unit testing
+- [x] Integration testing
 
 ## 9. Optimisasi & Polish
 - [x] Performance optimization

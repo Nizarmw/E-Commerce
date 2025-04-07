@@ -9,6 +9,17 @@ import ForgotPassword from './pages/auth/ForgotPassword';  // Add this import
 import SearchResults from './pages/public/Search';  // Add this import
 import OrderHistory from './pages/public/OrderHistory';
 import OrderDetail from './pages/public/OrderDetail';
+import Dashboard from "./pages/dashboard/Dashboard";
+import Seller from "./pages/dashboard/Seller";
+import SellerProducts from "./pages/dashboard/seller/Products";  // Updated path
+import SellerOrders from "./pages/dashboard/seller/Orders";     // Updated path
+import Settings from "./pages/dashboard/Settings";
+import SellerDashboard from './pages/dashboard/seller/Dashboard';
+import SellerSettings from './pages/dashboard/seller/Settings';
+import AdminOrders from './pages/dashboard/admin/Orders';
+import AdminCustomers from './pages/dashboard/admin/Customers';
+import AdminProducts from './pages/dashboard/admin/Products'; 
+import AdminSettings from './pages/dashboard/admin/Settings';
 import { ThemeProvider, createTheme } from '@mui/material';
 import './styles/fonts.css';  // Add this import
 
@@ -99,6 +110,19 @@ const App = () => {
         <Route path="/search" element={<SearchResults />} />  {/* Add this route */}
         <Route path="/orders" element={<OrderHistory />} />
         <Route path="/order/:id" element={<OrderDetail />} />
+
+        {/* Seller Dashboard Routes */}
+        <Route path="/dashboard/seller" element={<SellerDashboard />} />
+        <Route path="/dashboard/products" element={<SellerProducts />} /> {/* Changed this route */}
+        <Route path="/dashboard/orders" element={<SellerOrders />} />
+        <Route path="/dashboard/settings" element={<SellerSettings />} />
+
+        {/* Admin Dashboard Routes - prepend with /admin to differentiate */}
+        <Route path="/admin/dashboard" element={<Dashboard />} />
+        <Route path="/admin/orders" element={<AdminOrders />} />
+        <Route path="/admin/customers" element={<AdminCustomers />} />
+        <Route path="/admin/products" element={<AdminProducts />} />
+        <Route path="/admin/settings" element={<AdminSettings />} />
       </Routes>
     </ThemeProvider>
   );

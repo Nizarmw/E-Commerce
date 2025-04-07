@@ -54,28 +54,30 @@ const Seller = () => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      if (!isAuthenticated()) {
-        // Gunakan dialog atau toast notification di sini daripada alert
-        navigate('/login', { state: { message: 'Silakan login terlebih dahulu' } });
-        return;
-      }
-
       try {
-        // Verifikasi role seller
-        const userData = await getUserRole();
-        
-        if (userData.role !== 'seller' && userData.role !== 'admin') {
-          navigate('/', { state: { message: 'Anda tidak memiliki hak akses seller' } });
+        if (!isAuthenticated()) {
+          navigate('/login', { state: { from: '/dashboard/seller' } });
           return;
         }
-        
-        // Ambil produk seller dan kategori
-        fetchProducts();
-        fetchCategories();
+
+        const userData = await getUserRole();
+        if (!userData || (userData.role !== 'seller' && userData.role !== 'admin')) {
+          setError('Access denied. Seller privileges required.');
+          navigate('/');
+          return;
+        }
+
+        // If authentication successful, fetch data
+        await Promise.all([fetchProducts(), fetchCategories()]);
       } catch (error) {
-        console.error('Error:', error);
-        setError('Gagal memverifikasi pengguna');
-        navigate('/login');
+        console.error('Auth error:', error);
+        if (error.response?.status === 401) {
+          navigate('/login', { state: { from: '/dashboard/seller' } });
+        } else {
+          setError('Failed to verify user access');
+        }
+      } finally {
+        setLoading(false);
       }
     };
     

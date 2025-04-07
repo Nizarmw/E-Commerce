@@ -1,6 +1,6 @@
 import axios from 'axios';
-
-const API_URL = process.env.REACT_APP_API_URL;
+import { API_URL } from './products';
+import { getUserInfo } from '../utils/auth';
 
 /**
  * Mengambil data keranjang dari backend
@@ -9,11 +9,12 @@ const API_URL = process.env.REACT_APP_API_URL;
 export const getCart = async () => {
   try {
     const token = localStorage.getItem('token');
-    const response = await axios.get(`${API_URL}/cart/`, {
+    const user = getUserInfo();
+    const response = await axios.get(`${API_URL}/cart/${user.user_id}`, {
       headers: {
         Authorization: `Bearer ${token}`,
-      },
-    });
+    },
+  });
     return response.data;
   } catch (error) {
     console.error('Error mengambil data keranjang:', error);
@@ -54,7 +55,7 @@ export const addItemToCart = async (item) => {
   try {
     const token = localStorage.getItem('token');
     const response = await axios.post(
-      `${API_URL}/cart/items/`,
+      `${API_URL}/cart/`,
       item,
       {
         headers: {
@@ -97,9 +98,9 @@ export const removeItemFromCart = async (itemId) => {
 export const updateItemQuantity = async (itemId, quantity) => {
   try {
     const token = localStorage.getItem('token');
-    const response = await axios.patch(
-      `${API_URL}/cart/items/${itemId}/`,
-      { quantity },
+    const response = await axios.put(
+      `${API_URL}/cart/`,
+      { quantity, id : itemId },
       {
         headers: {
           Authorization: `Bearer ${token}`,

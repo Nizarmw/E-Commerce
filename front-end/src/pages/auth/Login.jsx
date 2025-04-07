@@ -32,6 +32,7 @@ const Login = () => {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [userInfo, setUserInfo] = useState(null);
   const navigate = useNavigate();
 
   const handleChange = (prop) => (event) => {
@@ -74,21 +75,48 @@ const Login = () => {
     setErrorMessage('');
     
     try {
-      // API call
-      const response = await axios.post(API_URL +  '/auth/login', 
-        { email: values.email, password: values.password }
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/auth/login`,
+        { 
+          email: values.email, 
+          password: values.password 
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          withCredentials: false // Ubah ke false untuk menghindari CORS credentials issue
+        }
       );
       
-      // Save token to localStorage
-      localStorage.setItem('token', response.data.token);
-      
-      console.log('Login successful');
-      navigate('/dashboard'); // Redirect to dashboard after login
+      if (response.data && response.data.token) {
+        localStorage.setItem('token', response.data.token);
+        
+        // Simpan info user
+        const userInfo = {
+          name: response.data.user?.name || response.data.user?.full_name,
+          email: response.data.user?.email,
+          role: response.data.user?.role || 'buyer'
+        };
+        setUserInfo(userInfo);
+        
+        if (userInfo.role === 'admin') {
+          navigate('/dashboard');
+        } else if (userInfo.role === 'seller') {
+          navigate('/dashboard/seller'); 
+        } else {
+          navigate('/');
+        }
+      } else {
+        throw new Error('Invalid response format');
+      }
     } catch (error) {
+      console.error('Login error:', error);
       setErrorMessage(
-        error.response?.data?.message || 'Login failed. Please check your credentials.'
+        error.response?.data?.message || 
+        'Login failed. Please check your credentials or try again later.'
       );
-      console.error('Login failed:', error);
     } finally {
       setLoading(false);
     }
