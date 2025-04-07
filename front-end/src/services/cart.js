@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { API_URL } from './products';
+import { getUserInfo } from '../utils/auth';
 
 /**
  * Mengambil data keranjang dari backend
@@ -8,11 +9,12 @@ import { API_URL } from './products';
 export const getCart = async () => {
   try {
     const token = localStorage.getItem('token');
-    const response = await axios.get(`${API_URL}/cart/`, {
+    const user = getUserInfo();
+    const response = await axios.get(`${API_URL}/cart/${user.user_id}`, {
       headers: {
         Authorization: `Bearer ${token}`,
-      },
-    });
+    },
+  });
     return response.data;
   } catch (error) {
     console.error('Error mengambil data keranjang:', error);
