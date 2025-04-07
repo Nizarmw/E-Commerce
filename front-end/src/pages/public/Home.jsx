@@ -352,7 +352,7 @@ const Home = () => {
                       <CardMedia
                         component="img"
                         height="220"
-                        image={product.image || `https://via.placeholder.com/300x200?text=${product.name}`}
+                        image={product.image_url || `https://via.placeholder.com/300x200?text=${product.name}`}
                         alt={product.name}
                         sx={{
                           transition: 'transform 0.5s',
