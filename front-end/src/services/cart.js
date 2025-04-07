@@ -1,6 +1,5 @@
 import axios from 'axios';
-
-const API_URL = process.env.REACT_APP_API_URL;
+import { API_URL } from './products';
 
 /**
  * Mengambil data keranjang dari backend
@@ -54,7 +53,7 @@ export const addItemToCart = async (item) => {
   try {
     const token = localStorage.getItem('token');
     const response = await axios.post(
-      `${API_URL}/cart/items/`,
+      `${API_URL}/cart/`,
       item,
       {
         headers: {

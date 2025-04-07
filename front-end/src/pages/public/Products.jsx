@@ -29,6 +29,8 @@ import { getAllCategories } from '../../services/categories';
 import { Stack } from '@mui/system';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import FavoriteIcon from '@mui/icons-material/Favorite';
+import { getUserInfo } from '../../utils/auth';
+import { addItemToCart } from '../../services/cart';
 
 const Products = () => {
   const [categories, setCategories] = useState([]);
@@ -136,6 +138,19 @@ const Products = () => {
   const handlePageChange = (event, value) => {
     setPage(value);
   };
+
+  const handleAddToCart = async (productId) => {
+    // Add product to cart logic here
+    const info = getUserInfo();
+    const data = {
+      product_id: productId,
+      user_id: info.user_id,
+      quantity: 1,
+    };
+
+    await addItemToCart(data);
+    alert('Product added to cart!');
+  };
 
   return (
     <PublicLayout>
@@ -304,7 +319,7 @@ const Products = () => {
                         color="primary" 
                         fullWidth
                         startIcon={<ShoppingCartIcon />}
-                        onClick={() => navigate('/cart')}  // Add this
+                        onClick={() => handleAddToCart(product.id)}  // Add this
                         sx={{ 
                           borderRadius: 2,
                           textTransform: 'none',

@@ -67,11 +67,7 @@ export const getUserInfo = () => {
 
   // Combine token data with stored user info
   return {
-    id: decodedToken.user_id,
-    role: decodedToken.role,
-    exp: decodedToken.exp,
-    iat: decodedToken.iat,
-    // Include additional stored user info
+    ...decodedToken,
     ...storedInfo
   };
 };
