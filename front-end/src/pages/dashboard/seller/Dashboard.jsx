@@ -27,7 +27,6 @@ const SellerDashboard = () => {
         }
 
         // Optional: Refresh token to ensure it's valid
-        await refreshToken();
         
         setLoading(false);
       } catch (error) {
