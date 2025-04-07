@@ -34,20 +34,59 @@ export const removeToken = () => {
 };
 
 /**
- * Get user info from token (simplified)
+ * Decode JWT token
+ * @param {string} token - JWT token string
+ * @returns {Object|null} Decoded token payload
+ */
+const decodeToken = (token) => {
+  try {
+    // Split token into parts and get payload
+    const base64Payload = token.split('.')[1];
+    // Replace invalid characters and decode
+    const payload = atob(base64Payload.replace(/-/g, '+').replace(/_/g, '/'));
+    return JSON.parse(payload);
+  } catch (error) {
+    console.error('Error decoding token:', error);
+    return null;
+  }
+};
+
+/**
+ * Get user info by combining JWT token data and stored user info
  * @returns {Object|null} User data or null
  */
 export const getUserInfo = () => {
-  // In a real app, you would decode the JWT token
-  // For now, this is a simplified placeholder
   const token = getToken();
   if (!token) return null;
   
-  // This is where you would decode the token
-  return { 
-    id: 1,
-    name: "User",
-    email: "user@example.com",
-    role: "admin"
+  const decodedToken = decodeToken(token);
+  if (!decodedToken) return null;
+
+  // Get additional stored user info
+  const storedInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+
+  // Combine token data with stored user info
+  return {
+    id: decodedToken.user_id,
+    role: decodedToken.role,
+    exp: decodedToken.exp,
+    iat: decodedToken.iat,
+    // Include additional stored user info
+    ...storedInfo
   };
+};
+
+/**
+ * Set user info
+ * @param {Object} userInfo - User information
+ */
+export const setUserInfo = (userInfo) => {
+  localStorage.setItem('userInfo', JSON.stringify(userInfo));
+};
+
+/**
+ * Clear user info
+ */
+export const clearUserInfo = () => {
+  localStorage.removeItem('userInfo');
 };

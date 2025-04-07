@@ -66,19 +66,50 @@ const Register = () => {
       setErrors({});
       
       try {
-        // API call from register.js
-        await axios.post(API_URL + '/auth/register', {
-          name: values.fullName,
+        // Format data sesuai ekspektasi backend
+        const userData = {
+          full_name: values.fullName, // Ubah format nama field
           email: values.email,
-          password: values.password
+          password: values.password,
+          role: 'buyer' // Tambahkan default role
+        };
+
+        console.log('Sending registration data:', userData); // Debug log
+
+        const response = await axios.post(
+          `${import.meta.env.VITE_API_URL}/auth/register`, 
+          userData,
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json'
+            },
+            withCredentials: false
+          }
+        );
+        
+        // Log response untuk debugging
+        console.log('Registration response:', response.data);
+
+        if (response.data) {
+          alert('Registration successful! Please log in.');
+          navigate('/login');
+        } else {
+          throw new Error('Invalid response from server');
+        }
+      } catch (error) {
+        console.error('Registration error details:', {
+          message: error.message,
+          response: error.response?.data,
+          status: error.response?.status,
+          data: error.response?.data
         });
         
-        // Show success message
-        alert('Registration successful! Please log in.');
-        navigate('/login');
-      } catch (error) {
+        // Tampilkan pesan error yang lebih deskriptif
         setErrors({
-          form: error.response?.data?.message || 'Registration failed. Please try again.'
+          form: error.response?.data?.error || 
+                error.response?.data?.message ||
+                'Registration failed. Please check your information and try again.'
         });
       } finally {
         setLoading(false);

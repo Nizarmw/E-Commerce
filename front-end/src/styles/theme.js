@@ -1,20 +1,7 @@
 import { createTheme } from '@mui/material/styles';
 import { deepmerge } from '@mui/utils';
 
-// Import fonts
-import '@fontsource/poppins/300.css';
-import '@fontsource/poppins/400.css';
-import '@fontsource/poppins/500.css';
-import '@fontsource/poppins/600.css';
-import '@fontsource/poppins/700.css';
-
-import '@fontsource/open-sans/300.css';
-import '@fontsource/open-sans/400.css';
-import '@fontsource/open-sans/500.css';
-import '@fontsource/open-sans/600.css';
-import '@fontsource/open-sans/700.css';
-
-// Common theme settings
+// Remove all @fontsource imports and replace with baseTheme configuration
 const baseTheme = {
   palette: {
     primary: {
@@ -31,29 +18,29 @@ const baseTheme = {
     },
   },
   typography: {
-    fontFamily: '"Open Sans", "Helvetica", "Arial", sans-serif',
+    fontFamily: '"Open Sans", system-ui, -apple-system, sans-serif',
     h1: {
-      fontFamily: '"Poppins", "Helvetica", "Arial", sans-serif',
+      fontFamily: '"Poppins", system-ui, -apple-system, sans-serif',
       fontWeight: 700,
     },
     h2: {
-      fontFamily: '"Poppins", "Helvetica", "Arial", sans-serif',
+      fontFamily: '"Poppins", system-ui, -apple-system, sans-serif',
       fontWeight: 600,
     },
     h3: {
-      fontFamily: '"Poppins", "Helvetica", "Arial", sans-serif',
+      fontFamily: '"Poppins", system-ui, -apple-system, sans-serif',
       fontWeight: 600,
     },
     h4: {
-      fontFamily: '"Poppins", "Helvetica", "Arial", sans-serif',
+      fontFamily: '"Poppins", system-ui, -apple-system, sans-serif',
       fontWeight: 600,
     },
     h5: {
-      fontFamily: '"Poppins", "Helvetica", "Arial", sans-serif',
+      fontFamily: '"Poppins", system-ui, -apple-system, sans-serif',
       fontWeight: 500,
     },
     h6: {
-      fontFamily: '"Poppins", "Helvetica", "Arial", sans-serif',
+      fontFamily: '"Poppins", system-ui, -apple-system, sans-serif',
       fontWeight: 500,
     },
     subtitle1: {
@@ -65,7 +52,7 @@ const baseTheme = {
       fontWeight: 500,
     },
     button: {
-      fontFamily: '"Poppins", "Helvetica", "Arial", sans-serif',
+      fontFamily: '"Poppins", system-ui, -apple-system, sans-serif',
       fontWeight: 500,
       textTransform: 'none',
     },

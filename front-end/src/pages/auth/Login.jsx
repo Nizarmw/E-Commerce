@@ -20,6 +20,7 @@ import Loading from '../../components/common/Loading';
 import PublicLayout from '../../layouts/PublicLayout';
 import axios from 'axios';
 import api from '../../services/api'; // Adjust the import path as necessary
+import { API_URL } from '../../services/products';
 
 const Login = () => {
   const [values, setValues] = useState({
@@ -31,6 +32,7 @@ const Login = () => {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const [userInfo, setUserInfo] = useState(null);
   const navigate = useNavigate();
 
   const handleChange = (prop) => (event) => {
@@ -57,9 +59,10 @@ const Login = () => {
     }
     if (!values.password) {
       newErrors.password = 'Password is required';
-    } else if (values.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
-    }
+    } 
+    // else if (values.password.length < 6) {
+    //   newErrors.password = 'Password must be at least 6 characters';
+    // }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -72,26 +75,47 @@ const Login = () => {
     setErrorMessage('');
     
     try {
-      const response = await api.post('/auth/login', {
-        email: values.email,
-        password: values.password
-      });
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/auth/login`,
+        { 
+          email: values.email, 
+          password: values.password 
+        },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          withCredentials: false // Ubah ke false untuk menghindari CORS credentials issue
+        }
+      );
       
-      // Save token to localStorage
-      localStorage.setItem('token', response.data.token);
-      
-      // Redirect based on user role
-      const role = response.data.user.role;
-      if (role === 'admin') {
-        navigate('/dashboard');
-      } else if (role === 'seller') {
-        navigate('/dashboard/seller');
+      if (response.data && response.data.token) {
+        localStorage.setItem('token', response.data.token);
+        
+        // Simpan info user
+        const userInfo = {
+          name: response.data.user?.name || response.data.user?.full_name,
+          email: response.data.user?.email,
+          role: response.data.user?.role || 'buyer'
+        };
+        setUserInfo(userInfo);
+        
+        if (userInfo.role === 'admin') {
+          navigate('/dashboard');
+        } else if (userInfo.role === 'seller') {
+          navigate('/dashboard/seller');
+        } else {
+          navigate('/');
+        }
       } else {
-        navigate('/');
+        throw new Error('Invalid response format');
       }
     } catch (error) {
+      console.error('Login error:', error);
       setErrorMessage(
-        error.response?.data?.message || 'Login failed. Please check your credentials.'
+        error.response?.data?.message || 
+        'Login failed. Please check your credentials or try again later.'
       );
     } finally {
       setLoading(false);
