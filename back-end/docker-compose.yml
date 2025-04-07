@@ -3,7 +3,6 @@ services:
     build:
       dockerfile: Dockerfile
     container_name: ecommerce_backend
-    restart: always
     env_file:
       - .env
     environment:
