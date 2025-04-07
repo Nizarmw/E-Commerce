@@ -10,6 +10,10 @@ import {
   Link,
   Divider,
   Alert,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
@@ -26,6 +30,7 @@ const Register = () => {
     email: '',
     password: '',
     confirmPassword: '',
+    role: 'buyer', // Add this
     showPassword: false,
     showConfirmPassword: false,
   });
@@ -71,7 +76,7 @@ const Register = () => {
           full_name: values.fullName, // Ubah format nama field
           email: values.email,
           password: values.password,
-          role: 'buyer' // Tambahkan default role
+          role: values.role // Add this
         };
 
         console.log('Sending registration data:', userData); // Debug log
@@ -117,6 +122,11 @@ const Register = () => {
     }
   };
 
+  const roles = [
+    { value: 'buyer', label: 'Buyer' },
+    { value: 'seller', label: 'Seller' }
+  ];
+
   return (
     <PublicLayout>
       <Container maxWidth="sm" sx={{ 
@@ -158,6 +168,20 @@ const Register = () => {
                 error={Boolean(errors.email)}
                 helperText={errors.email}
               />
+              <FormControl fullWidth margin="normal">
+                <InputLabel>Role</InputLabel>
+                <Select
+                  value={values.role}
+                  onChange={handleChange('role')}
+                  label="Role"
+                >
+                  {roles.map(role => (
+                    <MenuItem key={role.value} value={role.value}>
+                      {role.label}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
               <TextField
                 fullWidth
                 label="Password"

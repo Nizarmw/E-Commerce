@@ -5,10 +5,20 @@ export const isAuthenticated = () => {
 };
 
 export const getUserRole = async () => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    throw new Error('No token found');
+  }
+
   try {
-    const response = await api.get('/users/me');
-    return response.data.role;
+    const response = await api.get('/users/me', {
+      headers: {
+        'Authorization': `Bearer ${token}`
+      }
+    });
+    return response.data;
   } catch (error) {
+    console.error('Error getting user role:', error);
     throw error;
   }
 };

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Drawer,
@@ -17,20 +17,32 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/common/Navbar';
+import { getUserInfo } from '../utils/auth';
 
 const drawerWidth = 240;
-
-const menuItems = [
-  { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
-  { text: 'Orders', icon: <ShoppingCart />, path: '/dashboard/orders' },
-  { text: 'Customers', icon: <People />, path: '/dashboard/customers' },
-  { text: 'Products', icon: <Inventory />, path: '/dashboard/products' },
-  { text: 'Settings', icon: <Settings />, path: '/dashboard/settings' },
-];
 
 const DashboardLayout = ({ children }) => {
   const [open, setOpen] = useState(true);
   const navigate = useNavigate();
+  const userInfo = getUserInfo();
+  const isSeller = userInfo?.role === 'seller';
+
+  const sellerMenuItems = [
+    { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard/seller' },
+    { text: 'Products', icon: <Inventory />, path: '/dashboard/seller/products' },
+    { text: 'Orders', icon: <ShoppingCart />, path: '/dashboard/seller/orders' },
+    { text: 'Settings', icon: <Settings />, path: '/dashboard/seller/settings' },
+  ];
+
+  const adminMenuItems = [
+    { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
+    { text: 'Orders', icon: <ShoppingCart />, path: '/dashboard/orders' },
+    { text: 'Customers', icon: <People />, path: '/dashboard/customers' },
+    { text: 'Products', icon: <Inventory />, path: '/dashboard/products' },
+    { text: 'Settings', icon: <Settings />, path: '/dashboard/settings' },
+  ];
+
+  const menuItems = isSeller ? sellerMenuItems : adminMenuItems;
 
   return (
     <Box sx={{ display: 'flex' }}>

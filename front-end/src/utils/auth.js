@@ -90,3 +90,37 @@ export const setUserInfo = (userInfo) => {
 export const clearUserInfo = () => {
   localStorage.removeItem('userInfo');
 };
+
+/**
+ * Refresh authentication token
+ * @returns {Promise<boolean>} Refresh status
+ */
+export const refreshToken = async () => {
+  try {
+    const currentToken = localStorage.getItem('token');
+    if (!currentToken) {
+      throw new Error('No token found');
+    }
+
+    const response = await fetch('/api/auth/refresh', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${currentToken}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      localStorage.setItem('token', data.token);
+      return true;
+    }
+
+    throw new Error('Token refresh failed');
+  } catch (error) {
+    console.error('Token refresh error:', error);
+    localStorage.removeItem('token');
+    localStorage.removeItem('userInfo');
+    return false;
+  }
+};

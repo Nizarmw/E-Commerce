@@ -104,7 +104,7 @@ const Login = () => {
         if (userInfo.role === 'admin') {
           navigate('/dashboard');
         } else if (userInfo.role === 'seller') {
-          navigate('/dashboard/seller');
+          navigate('/dashboard/seller'); 
         } else {
           navigate('/');
         }
