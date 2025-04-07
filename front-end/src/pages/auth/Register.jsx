@@ -17,6 +17,7 @@ import Card from '../../components/common/Card';
 import Loading from '../../components/common/Loading';
 import PublicLayout from '../../layouts/PublicLayout';
 import axios from 'axios';
+import api from '../../services/api'; // Adjust the import path as necessary
 
 const Register = () => {
   const [values, setValues] = useState({
@@ -50,6 +51,9 @@ const Register = () => {
     else if (values.password !== values.confirmPassword) {
       newErrors.confirmPassword = 'Passwords do not match';
     }
+    else if (values.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -62,7 +66,7 @@ const Register = () => {
       
       try {
         // API call from register.js
-        await axios.post(process.env.REACT_APP_API_URL + '/auth/register', {
+        await api.post('/auth/register', {
           name: values.fullName,
           email: values.email,
           password: values.password

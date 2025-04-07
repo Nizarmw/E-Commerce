@@ -19,6 +19,7 @@ import Card from '../../components/common/Card';  // Fix the import path
 import Loading from '../../components/common/Loading';
 import PublicLayout from '../../layouts/PublicLayout';
 import axios from 'axios';
+import api from '../../services/api'; // Adjust the import path as necessary
 
 const Login = () => {
   const [values, setValues] = useState({
@@ -72,8 +73,8 @@ const Login = () => {
     
     try {
       // API call
-      const response = await axios.post(
-        process.env.REACT_APP_API_URL + '/auth/login/', 
+      const response = await api.post(
+      '/auth/login', 
         { email: values.email, password: values.password }
       );
       
