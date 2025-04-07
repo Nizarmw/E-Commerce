@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Container,
   Grid,
@@ -24,10 +24,26 @@ import { getCart, updateItemQuantity } from "../../services/cart";
 const Cart = () => {
   // Mock data - replace with Redux state
   const [cartItems, setCartItems] = React.useState([]);
+  const [subTotal, setSubTotal] = useState(0);
+  const [tax, setTax] = useState(0);
+  const [total, setTotal] = useState(0);
+
+  const calculateTax = (subtotal) => subtotal * 0.11; // 11% tax
+  const calculateTotal = (subtotal, tax) => subtotal + tax;
 
   const getCartItems = async () => {
     const res = await getCart();
     setCartItems(res);
+
+    const sub = res.reduce(
+      (total, item) => total + item.product.price * item.quantity,
+      0
+    );
+    const taxHasil = calculateTax(sub);
+    setSubTotal(sub);
+    console.log();
+    setTax(calculateTax(sub));
+    setTotal(calculateTotal(sub, taxHasil));
   };
 
   useEffect(() => {
@@ -61,9 +77,6 @@ const Cart = () => {
       0
     );
   };
-
-  const calculateTax = (subtotal) => subtotal * 0.11; // 11% tax
-  const calculateTotal = (subtotal, tax) => subtotal + tax;
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat("id-ID", {
@@ -212,7 +225,7 @@ const Cart = () => {
                     }}
                   >
                     <Typography>Subtotal</Typography>
-                    <Typography>{formatPrice(calculateSubtotal())}</Typography>
+                    <Typography>{formatPrice(subTotal)}</Typography>
                   </Box>
                   <Box
                     sx={{
@@ -223,7 +236,7 @@ const Cart = () => {
                   >
                     <Typography>Tax (11%)</Typography>
                     <Typography>
-                      {formatPrice(calculateTax(calculateSubtotal()))}
+                      {formatPrice(tax)}
                     </Typography>
                   </Box>
                   <Divider sx={{ my: 2 }} />
@@ -236,12 +249,8 @@ const Cart = () => {
                   >
                     <Typography variant="h6">Total</Typography>
                     <Typography variant="h6">
-                      {formatPrice(
-                        calculateTotal(
-                          calculateSubtotal(),
-                          calculateTax(calculateSubtotal())
-                        )
-                      )}
+                      {formatPrice(total)
+                      }
                     </Typography>
                   </Box>
                   <Button
