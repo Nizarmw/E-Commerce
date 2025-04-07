@@ -20,7 +20,8 @@ import {
   Add
 } from '@mui/icons-material';
 import PublicLayout from '../../layouts/PublicLayout';
-import { getCategories, searchProducts } from '../../services/products';
+import { searchProducts } from '../../services/products';
+import { getAllCategories } from '../../services/categories';
 
 const Products = () => {
   const [categories, setCategories] = useState([]);
@@ -35,7 +36,7 @@ const Products = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const categoriesData = await getCategories();
+        const categoriesData = await getAllCategories();
         setCategories(categoriesData);
       } catch (error) {
         console.error('Failed to fetch categories:', error);
