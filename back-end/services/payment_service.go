@@ -11,7 +11,7 @@ import (
 
 func CreateSnapToken(orderID string) (string, error) {
 	var order models.Order
-	if err := config.DB.Preload("Items.Product").Where("id = ?", orderID).First(&order).Error; err != nil {
+	if err := config.DB.Preload("OrderItems.Product").Where("id = ?", orderID).First(&order).Error; err != nil {
 		return "", err
 	}
 
