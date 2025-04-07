@@ -36,7 +36,6 @@ func InitDB() {
 	DB = db
 	fmt.Println("Database connected!")
 
-	// AutoMigrate
 	db.AutoMigrate(
 		&models.User{}, &models.Product{}, &models.Order{},
 		&models.OrderItem{}, &models.Review{}, &models.CartItem{},

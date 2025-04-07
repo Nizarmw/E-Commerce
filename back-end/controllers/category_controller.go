@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"ecommerce-backend/config"
 	"ecommerce-backend/models"
 	"ecommerce-backend/services"
 	"net/http"
@@ -42,4 +43,16 @@ func DeleteCategory(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Category deleted successfully"})
+}
+func GetCategoryByID(c *gin.Context) {
+	id := c.Param("id")
+
+	var category models.Category
+	err := config.DB.Preload("Products").First(&category, "id = ?", id).Error
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Category not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, category)
 }

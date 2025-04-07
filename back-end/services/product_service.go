@@ -75,6 +75,7 @@ func UpdateProduct(product *models.Product) error {
 			"price":       product.Price,
 			"stock":       product.Stock,
 			"category_id": product.CategoryID,
+			"image_url":   product.ImageURL,
 		}).Error
 }
 

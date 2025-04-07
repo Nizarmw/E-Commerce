@@ -14,7 +14,7 @@ func CreateCategory(category *models.Category) error {
 
 func GetCategories() ([]models.Category, error) {
 	var categories []models.Category
-	err := config.DB.Find(&categories).Error
+	err := config.DB.Preload("Products").Find(&categories).Error
 	return categories, err
 }
 func DeleteCategory(id string) error {
