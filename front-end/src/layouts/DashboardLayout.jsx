@@ -45,7 +45,7 @@ const DashboardLayout = ({ children }) => {
   const menuItems = isSeller ? sellerMenuItems : adminMenuItems;
 
   return (
-    <Box sx={{ display: 'flex' }}>
+    <Box>
       {/* Navbar */}
       <Navbar />
 
