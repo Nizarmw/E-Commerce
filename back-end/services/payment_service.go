@@ -9,8 +9,17 @@ import (
 	"github.com/veritrans/go-midtrans"
 )
 
-func CreateSnapToken(orderID string, amount int64) (string, error) {
-	// Midtrans client config
+func CreateSnapToken(orderID string) (string, error) {
+	var order models.Order
+	if err := config.DB.Preload("Items.Product").Where("id = ?", orderID).First(&order).Error; err != nil {
+		return "", err
+	}
+
+	var amount int64
+	for _, item := range order.OrderItems {
+		amount += int64(item.Quantity) * int64(item.Product.Price)
+	}
+
 	m := midtrans.NewClient()
 	m.ServerKey = os.Getenv("MIDTRANS_SERVER_KEY")
 	m.ClientKey = os.Getenv("MIDTRANS_CLIENT_KEY")
@@ -18,7 +27,6 @@ func CreateSnapToken(orderID string, amount int64) (string, error) {
 
 	snapGateway := midtrans.SnapGateway{Client: m}
 
-	// Snap request
 	snapReq := &midtrans.SnapReq{
 		TransactionDetails: midtrans.TransactionDetails{
 			OrderID:  orderID,
@@ -31,7 +39,6 @@ func CreateSnapToken(orderID string, amount int64) (string, error) {
 		return "", err
 	}
 
-	// Simpan ke database
 	payment := models.Payment{
 		ID:        uuid.New(),
 		OrderID:   orderID,

@@ -4,6 +4,8 @@ import (
 	"ecommerce-backend/models"
 	"ecommerce-backend/services"
 	"log"
+	"path/filepath"
+	"strings"
 
 	"net/http"
 	"strconv"
@@ -46,7 +48,11 @@ func CreateProduct(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Image file is required"})
 		return
 	}
-
+	ext := strings.ToLower(filepath.Ext(file.Filename))
+	if ext != ".jpg" && ext != ".jpeg" && ext != ".png" && ext != ".webp" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "File harus berupa gambar (.jpg, .jpeg, .png, .webp)"})
+		return
+	}
 	supa := services.NewSupabaseStorage()
 	imageURL, err := supa.Upload(file)
 	if err != nil {
@@ -141,6 +147,11 @@ func UpdateProduct(c *gin.Context) {
 	} else {
 		log.Println("File ditemukan:", file.Filename)
 
+		ext := strings.ToLower(filepath.Ext(file.Filename))
+		if ext != ".jpg" && ext != ".jpeg" && ext != ".png" && ext != ".webp" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "File harus berupa gambar (.jpg, .jpeg, .png, .webp)"})
+			return
+		}
 		supa := services.NewSupabaseStorage()
 		_ = supa.Delete(existingProduct.ImageURL)
 

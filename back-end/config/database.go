@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/joho/godotenv"
 	"gorm.io/driver/mysql"
@@ -28,9 +29,18 @@ func InitDB() {
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		dbUser, dbPass, dbHost, dbPort, dbName)
 
-	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	var db *gorm.DB
+	for i := 0; i < 10; i++ {
+		db, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
+		if err == nil {
+			break
+		}
+		log.Printf("Retrying database connection (%d/10)...", i+1)
+		time.Sleep(5 * time.Second)
+	}
+
 	if err != nil {
-		log.Fatal("Failed to connect to database:", err)
+		log.Fatalf("Failed to connect to database after retries: %v", err)
 	}
 
 	DB = db
@@ -39,8 +49,7 @@ func InitDB() {
 	db.AutoMigrate(
 		&models.User{}, &models.Product{}, &models.Order{},
 		&models.OrderItem{}, &models.Review{}, &models.CartItem{},
-		&models.Category{},
-		&models.Payment{},
+		&models.Category{}, &models.Payment{},
 	)
 
 	fmt.Println("Database migrated!")

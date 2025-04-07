@@ -9,7 +9,6 @@ import (
 
 type PaymentRequest struct {
 	OrderID string `json:"order_id"`
-	Amount  int64  `json:"amount"`
 }
 
 func CreatePayment(c *gin.Context) {
@@ -19,7 +18,7 @@ func CreatePayment(c *gin.Context) {
 		return
 	}
 
-	snapToken, err := services.CreateSnapToken(req.OrderID, req.Amount)
+	snapToken, err := services.CreateSnapToken(req.OrderID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
