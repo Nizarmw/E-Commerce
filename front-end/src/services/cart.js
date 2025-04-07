@@ -98,9 +98,9 @@ export const removeItemFromCart = async (itemId) => {
 export const updateItemQuantity = async (itemId, quantity) => {
   try {
     const token = localStorage.getItem('token');
-    const response = await axios.patch(
-      `${API_URL}/cart/items/${itemId}/`,
-      { quantity },
+    const response = await axios.put(
+      `${API_URL}/cart/`,
+      { quantity, id : itemId },
       {
         headers: {
           Authorization: `Bearer ${token}`,

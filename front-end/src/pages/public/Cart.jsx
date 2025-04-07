@@ -19,30 +19,36 @@ import {
 } from "@mui/icons-material";
 import { Link } from "react-router-dom";
 import PublicLayout from "../../layouts/PublicLayout"; // Fix this import
-import { getCart } from "../../services/cart";
+import { getCart, updateItemQuantity } from "../../services/cart";
 
 const Cart = () => {
   // Mock data - replace with Redux state
   const [cartItems, setCartItems] = React.useState([]);
 
-  useEffect(() => {
-    const getCartItems = async () => {
-      const res = await getCart();
-      setCartItems(res);
-      console.log(res);
-    };
+  const getCartItems = async () => {
+    const res = await getCart();
+    setCartItems(res);
+  };
 
+  useEffect(() => {
     getCartItems();
   }, []);
 
-  const handleQuantityChange = (itemId, change) => {
-    setCartItems((items) =>
-      items.map((item) =>
-        item.id === itemId
-          ? { ...item, quantity: Math.max(1, item.quantity + change) }
-          : item
-      )
-    );
+  const handleQuantityChange = async (itemId, quantity) => {
+    // setCartItems((items) =>
+    //   items.map((item) =>
+    //     item.id === itemId
+    //       ? { ...item, quantity: Math.max(1, item.quantity + change) }
+    //       : item
+    //   )
+    // );
+
+    try {
+      await updateItemQuantity(itemId, quantity); // Update quantity in the backend
+      await getCartItems(); // Fetch updated cart items
+    } catch (error) {
+      console.error("Error updating item quantity:", error);
+    }
   };
 
   const handleRemoveItem = (itemId) => {
@@ -123,7 +129,9 @@ const Cart = () => {
                           >
                             <IconButton
                               size="small"
-                              onClick={() => handleQuantityChange(item.id, -1)}
+                              onClick={() =>
+                                handleQuantityChange(item.id, item.quantity - 1)
+                              }
                               disabled={item.quantity <= 1}
                             >
                               <RemoveIcon />
@@ -138,7 +146,9 @@ const Cart = () => {
                             />
                             <IconButton
                               size="small"
-                              onClick={() => handleQuantityChange(item.id, 1)}
+                              onClick={() =>
+                                handleQuantityChange(item.id, item.quantity + 1)
+                              }
                             >
                               <AddIcon />
                             </IconButton>
