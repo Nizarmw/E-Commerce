@@ -1,0 +1,30 @@
+package models
+
+import (
+	"time"
+
+	"github.com/google/uuid"
+	"gorm.io/gorm"
+)
+
+type Payment struct {
+	ID            uuid.UUID      `gorm:"type:uuid;primaryKey" json:"id"`
+	OrderID       string         `gorm:"uniqueIndex;not null" json:"order_id"`
+	Amount        int64          `gorm:"not null" json:"amount"`
+	SnapToken     string         `gorm:"not null" json:"snap_token"`
+	TransactionID string         `gorm:"" json:"transaction_id"`
+	Status        string         `gorm:"type:varchar(20);not null;default:'pending'" json:"status"`
+	CreatedAt     time.Time      `json:"created_at"`
+	UpdatedAt     time.Time      `json:"updated_at"`
+	DeletedAt     gorm.DeletedAt `gorm:"index" json:"-"`
+
+	Order Order `gorm:"foreignKey:OrderID;references:ID" json:"-"`
+}
+
+const (
+	PaymentStatusPending = "pending"
+	PaymentStatusSuccess = "success"
+	PaymentStatusFailed  = "failed"
+	PaymentStatusExpired = "expired"
+	PaymentStatusCancel  = "cancel"
+)

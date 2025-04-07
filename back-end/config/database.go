@@ -1,10 +1,10 @@
 package config
 
 import (
+	"ecommerce-backend/models"
 	"fmt"
 	"log"
 	"os"
-	"ecommerce-backend/models"
 
 	"github.com/joho/godotenv"
 	"gorm.io/driver/mysql"
@@ -19,15 +19,13 @@ func InitDB() {
 		log.Fatal("Error loading .env file")
 	}
 
-	
 	dbUser := os.Getenv("DB_USER")
 	dbPass := os.Getenv("DB_PASS")
 	dbHost := os.Getenv("DB_HOST")
 	dbPort := os.Getenv("DB_PORT")
 	dbName := os.Getenv("DB_NAME")
 
-	
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", 
+	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		dbUser, dbPass, dbHost, dbPort, dbName)
 
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
@@ -43,6 +41,7 @@ func InitDB() {
 		&models.User{}, &models.Product{}, &models.Order{},
 		&models.OrderItem{}, &models.Review{}, &models.CartItem{},
 		&models.Category{},
+		&models.Payment{},
 	)
 
 	fmt.Println("Database migrated!")

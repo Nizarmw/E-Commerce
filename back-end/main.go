@@ -6,6 +6,7 @@ import (
 	"ecommerce-backend/config"
 	"ecommerce-backend/middlewares"
 	"ecommerce-backend/routes"
+
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -27,6 +28,7 @@ func main() {
 	routes.RegisterReviewRoutes(r)
 	routes.SetupOrderRoutes(r)
 	routes.CartRoutes(r)
+	routes.RegisterPaymentRoutes(r)
 	r.GET("/profile", middlewares.AuthMiddleware(), func(c *gin.Context) {
 		userID, _ := c.Get("userID")
 		role, _ := c.Get("role")
