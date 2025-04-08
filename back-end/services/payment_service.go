@@ -11,21 +11,24 @@ import (
 
 func CreateSnapToken(orderID string) (string, error) {
 	var order models.Order
-	if err := config.DB.Preload("OrderItems.Product").Where("id = ?", orderID).First(&order).Error; err != nil {
+
+	if err := config.DB.
+		Preload("OrderItems.Product").
+		Where("id = ?", orderID).
+		First(&order).Error; err != nil {
 		return "", err
 	}
-
 	var amount int64
 	for _, item := range order.OrderItems {
 		amount += int64(item.Quantity) * int64(item.Product.Price)
 	}
 
-	m := midtrans.NewClient()
-	m.ServerKey = os.Getenv("MIDTRANS_SERVER_KEY")
-	m.ClientKey = os.Getenv("MIDTRANS_CLIENT_KEY")
-	m.APIEnvType = midtrans.Sandbox
+	midtransClient := midtrans.NewClient()
+	midtransClient.ServerKey = os.Getenv("MIDTRANS_SERVER_KEY")
+	midtransClient.ClientKey = os.Getenv("MIDTRANS_CLIENT_KEY")
+	midtransClient.APIEnvType = midtrans.Sandbox
 
-	snapGateway := midtrans.SnapGateway{Client: m}
+	snapGateway := midtrans.SnapGateway{Client: midtransClient}
 
 	snapReq := &midtrans.SnapReq{
 		TransactionDetails: midtrans.TransactionDetails{
@@ -70,7 +73,8 @@ func UpdatePaymentStatus(orderID, transactionID, midtransStatus string) error {
 		status = models.PaymentStatusFailed
 	}
 
-	return config.DB.Model(&models.Payment{}).Where("order_id = ?", orderID).
+	return config.DB.Model(&models.Payment{}).
+		Where("order_id = ?", orderID).
 		Updates(map[string]interface{}{
 			"status":         status,
 			"transaction_id": transactionID,

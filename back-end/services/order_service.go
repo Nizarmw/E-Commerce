@@ -60,14 +60,14 @@ func CreateOrder(order *models.Order) error {
 		return err
 	}
 
-	for _, item := range correctedOrderItems {
-		if err := tx.Model(&models.Product{}).
-			Where("id = ?", item.ProductID).
-			Update("stock", gorm.Expr("stock - ?", item.Quantity)).Error; err != nil {
-			tx.Rollback()
-			return err
-		}
-	}
+	// for _, item := range correctedOrderItems {
+	// 	if err := tx.Model(&models.Product{}).
+	// 		Where("id = ?", item.ProductID).
+	// 		Update("stock", gorm.Expr("stock - ?", item.Quantity)).Error; err != nil {
+	// 		tx.Rollback()
+	// 		return err
+	// 	}
+	// }
 
 	tx.Commit()
 	return nil
