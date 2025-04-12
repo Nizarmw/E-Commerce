@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Card,
   CardActions,
@@ -10,95 +10,59 @@ import {
   Rating,
   Box,
   Skeleton,
-} from '@mui/material';
+} from "@mui/material";
 import {
   Favorite,
   FavoriteBorder,
   ShoppingCart,
   BrokenImage,
-} from '@mui/icons-material';
-import { Link } from 'react-router-dom';
+} from "@mui/icons-material";
+import { Link } from "react-router-dom";
 
 const formatPrice = (price) => {
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
   }).format(price);
 };
 
-const ProductCard = ({
-  id,
-  name,
-  price,
-  image,
-  rating,
-  description,
-  isWishlisted = false,
-  onAddToCart,
-  onToggleWishlist,
-}) => {
+const ProductCard = ({ product }) => {
   const [imageError, setImageError] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [wishlisted, setWishlisted] = useState(isWishlisted);
-
-  const handleImageLoad = () => {
-    setIsLoading(false);
-  };
-
-  const handleImageError = () => {
-    setImageError(true);
-    setIsLoading(false);
-  };
-
-  const handleToggleWishlist = () => {
-    setWishlisted(!wishlisted);
-    if (onToggleWishlist) {
-      onToggleWishlist(id);
-    }
-  };
-
-  const handleAddToCart = () => {
-    if (onAddToCart) {
-      onAddToCart(id);
-    }
-  };
+  const [wishlisted, setWishlisted] = useState(false);
 
   return (
-    <Card 
-      sx={{ 
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        position: 'relative',
+    <Card
+      sx={{
+        height: "100%",
+        display: "flex",
+        flexDirection: "column",
+        position: "relative",
       }}
     >
       {/* Wishlist button */}
       <IconButton
         sx={{
-          position: 'absolute',
+          position: "absolute",
           right: 8,
           top: 8,
-          backgroundColor: 'rgba(255, 255, 255, 0.8)',
-          '&:hover': {
-            backgroundColor: 'rgba(255, 255, 255, 0.9)',
+          backgroundColor: "rgba(255, 255, 255, 0.8)",
+          "&:hover": {
+            backgroundColor: "rgba(255, 255, 255, 0.9)",
           },
         }}
-        onClick={handleToggleWishlist}
+        // onClick={handleToggleWishlist}
       >
-        {wishlisted ? (
-          <Favorite color="error" />
-        ) : (
-          <FavoriteBorder />
-        )}
+        {wishlisted ? <Favorite color="error" /> : <FavoriteBorder />}
       </IconButton>
 
       {/* Product Image */}
-      <Box sx={{ position: 'relative', paddingTop: '75%' }}>
+      <Box sx={{ position: "relative", paddingTop: "75%" }}>
         {isLoading && (
           <Skeleton
             variant="rectangular"
             sx={{
-              position: 'absolute',
+              position: "absolute",
               top: 0,
               left: 0,
               right: 0,
@@ -109,33 +73,33 @@ const ProductCard = ({
         {imageError ? (
           <Box
             sx={{
-              position: 'absolute',
+              position: "absolute",
               top: 0,
               left: 0,
               right: 0,
               bottom: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              bgcolor: 'grey.100',
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              bgcolor: "grey.100",
             }}
           >
-            <BrokenImage sx={{ fontSize: 40, color: 'grey.500' }} />
+            <BrokenImage sx={{ fontSize: 40, color: "grey.500" }} />
           </Box>
         ) : (
           <CardMedia
             component="img"
-            image={image}
+            image={product.image_url}
             alt={name}
-            onLoad={handleImageLoad}
-            onError={handleImageError}
+            // onLoad={handleImageLoad}
+            // onError={handleImageError}
             sx={{
-              position: 'absolute',
+              position: "absolute",
               top: 0,
               left: 0,
               right: 0,
               bottom: 0,
-              objectFit: 'cover',
+              objectFit: "cover",
             }}
           />
         )}
@@ -146,30 +110,35 @@ const ProductCard = ({
         <Typography
           variant="h6"
           component={Link}
-          to={`/product/${id}`}
+          to={`/product/${product.id}`}
           sx={{
-            textDecoration: 'none',
-            color: 'inherit',
-            '&:hover': {
-              color: 'primary.main',
+            textDecoration: "none",
+            color: "inherit",
+            "&:hover": {
+              color: "primary.main",
             },
           }}
         >
-          {name}
+          {product.name}
         </Typography>
-        
+
         <Typography
           variant="h6"
           color="primary"
-          sx={{ mt: 1, fontWeight: 'bold' }}
+          sx={{ mt: 1, fontWeight: "bold" }}
         >
-          {formatPrice(price)}
+          {formatPrice(product.price)}
         </Typography>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-          <Rating value={rating} precision={0.5} readOnly size="small" />
+        <Box sx={{ display: "flex", alignItems: "center", mt: 1 }}>
+          <Rating
+            value={product.rating}
+            precision={0.5}
+            readOnly
+            size="small"
+          />
           <Typography variant="body2" color="text.secondary" sx={{ ml: 1 }}>
-            ({rating})
+            {product.rating}
           </Typography>
         </Box>
 
@@ -178,23 +147,23 @@ const ProductCard = ({
           color="text.secondary"
           sx={{
             mt: 1,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            display: '-webkit-box',
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            display: "-webkit-box",
             WebkitLineClamp: 2,
-            WebkitBoxOrient: 'vertical',
+            WebkitBoxOrient: "vertical",
           }}
         >
-          {description}
+          {product.description}
         </Typography>
       </CardContent>
 
       {/* Actions */}
-      <CardActions sx={{ justifyContent: 'space-between', p: 2 }}>
+      <CardActions sx={{ justifyContent: "space-between", p: 2 }}>
         <Button
           variant="contained"
           startIcon={<ShoppingCart />}
-          onClick={handleAddToCart}
+          // onClick={handleAddToCart}
           fullWidth
         >
           Add to Cart

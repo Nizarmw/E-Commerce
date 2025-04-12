@@ -1,6 +1,6 @@
-import axios from 'axios';
+import axios from "axios";
 
-export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080';
+export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
 /**
  * Mendapatkan semua produk
@@ -11,7 +11,7 @@ export const getAllProducts = async () => {
     const response = await axios.get(`${API_URL}/products/`);
     return response.data;
   } catch (error) {
-    console.error('Error mengambil produk:', error);
+    console.error("Error mengambil produk:", error);
     throw error;
   }
 };
@@ -25,19 +25,26 @@ export const getAllProducts = async () => {
  * @param {number} params.maxPrice - Harga maksimum
  * @returns {Promise<Array>} - Array produk hasil pencarian
  */
-export const searchProducts = async ({ query, category, minPrice, maxPrice }) => {
+export const searchProducts = async ({
+  query,
+  category,
+  minPrice,
+  maxPrice,
+}) => {
   try {
     // Membangun parameter query
     const params = new URLSearchParams();
-    if (query) params.append('q', query);
-    if (category) params.append('category', category);
-    if (minPrice) params.append('min_price', minPrice);
-    if (maxPrice) params.append('max_price', maxPrice);
-    
-    const response = await axios.get(`${API_URL}/products/search/?${params.toString()}`);
+    if (query) params.append("q", query);
+    if (category) params.append("category", category);
+    if (minPrice) params.append("min_price", minPrice);
+    if (maxPrice) params.append("max_price", maxPrice);
+
+    const response = await axios.get(
+      `${API_URL}/products/search/?${params.toString()}`
+    );
     return response.data;
   } catch (error) {
-    console.error('Error mencari produk:', error);
+    console.error("Error mencari produk:", error);
     throw error;
   }
 };
@@ -49,7 +56,7 @@ export const searchProducts = async ({ query, category, minPrice, maxPrice }) =>
  */
 export const getProductById = async (id) => {
   try {
-    const response = await axios.get(`${API_URL}/products/${id}/`);
+    const response = await axios.get(`${API_URL}/products/${id}`);
     return response.data;
   } catch (error) {
     console.error(`Error mengambil produk dengan ID ${id}:`, error);
@@ -64,7 +71,9 @@ export const getProductById = async (id) => {
  */
 export const getProductsByCategory = async (category) => {
   try {
-    const response = await axios.get(`${API_URL}/products/?category=${category}`);
+    const response = await axios.get(
+      `${API_URL}/products/?category=${category}`
+    );
     return response.data;
   } catch (error) {
     console.error(`Error mengambil produk untuk kategori ${category}:`, error);
@@ -78,7 +87,7 @@ export const getProductsByCategory = async (category) => {
  */
 export const getSellerProducts = async () => {
   try {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     const response = await axios.get(`${API_URL}/products/seller/`, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -86,7 +95,7 @@ export const getSellerProducts = async () => {
     });
     return response.data;
   } catch (error) {
-    console.error('Error mengambil produk seller:', error);
+    console.error("Error mengambil produk seller:", error);
     throw error;
   }
 };
@@ -98,7 +107,7 @@ export const getSellerProducts = async () => {
  */
 export const createProduct = async (productData) => {
   try {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     const response = await axios.post(`${API_URL}/products/`, productData, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -106,7 +115,7 @@ export const createProduct = async (productData) => {
     });
     return response.data;
   } catch (error) {
-    console.error('Error membuat produk:', error);
+    console.error("Error membuat produk:", error);
     throw error;
   }
 };
@@ -119,12 +128,16 @@ export const createProduct = async (productData) => {
  */
 export const updateProduct = async (id, productData) => {
   try {
-    const token = localStorage.getItem('token');
-    const response = await axios.put(`${API_URL}/products/${id}/`, productData, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const token = localStorage.getItem("token");
+    const response = await axios.put(
+      `${API_URL}/products/${id}/`,
+      productData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
     return response.data;
   } catch (error) {
     console.error(`Error memperbarui produk dengan ID ${id}:`, error);
@@ -139,7 +152,7 @@ export const updateProduct = async (id, productData) => {
  */
 export const deleteProduct = async (id) => {
   try {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     await axios.delete(`${API_URL}/products/${id}/`, {
       headers: {
         Authorization: `Bearer ${token}`,
