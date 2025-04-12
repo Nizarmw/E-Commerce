@@ -1,70 +1,76 @@
-import React, { useState } from 'react';
-import { 
-  Box, 
-  Typography, 
-  TextField, 
-  Button, 
-  Rating, 
-  Alert, 
-  Paper 
-} from '@mui/material';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import Loading from '../common/Loading';
+import React, { useState } from "react";
+import {
+  Box,
+  Typography,
+  TextField,
+  Button,
+  Rating,
+  Alert,
+  Paper,
+} from "@mui/material";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import Loading from "../common/Loading";
 
 // This function should be in your auth utility
 const isAuthenticated = () => {
-  return localStorage.getItem('token') !== null;
+  return localStorage.getItem("token") !== null;
 };
 
 const ReviewForm = ({ productId, onReviewSubmitted }) => {
   const [rating, setRating] = useState(5);
-  const [comment, setComment] = useState('');
+  const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  
+
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!isAuthenticated()) {
-      if (window.confirm('You need to login to submit a review. Would you like to login now?')) {
-        navigate('/login', { state: { from: `/product/${productId}` } });
+      if (
+        window.confirm(
+          "You need to login to submit a review. Would you like to login now?"
+        )
+      ) {
+        navigate("/login", { state: { from: `/product/${productId}` } });
       }
       return;
     }
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       await axios.post(
-        process.env.REACT_APP_API_URL + '/reviews/',
+        `${import.meta.env.VITE_API_URL}/reviews/`,
         {
-          productId,
+          product_id: productId,
           rating,
-          comment
+          comment,
         },
         {
           headers: {
-            Authorization: `Bearer ${token}`
-          }
+            Authorization: `Bearer ${token}`,
+          },
         }
       );
-      
+
       // Reset form
       setRating(5);
-      setComment('');
-      
+      setComment("");
+
       // Notify parent component
       if (onReviewSubmitted) {
         onReviewSubmitted();
       }
-      
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to submit review. Please try again.');
+      setError(
+        err.response?.data?.error ||
+          "Failed to submit review. Please try again."
+      );
     } finally {
       setLoading(false);
     }
@@ -75,13 +81,13 @@ const ReviewForm = ({ productId, onReviewSubmitted }) => {
       <Typography variant="h6" gutterBottom fontWeight="medium">
         Write a Review
       </Typography>
-      
+
       {error && (
         <Alert severity="error" sx={{ mb: 2 }}>
           {error}
         </Alert>
       )}
-      
+
       <Box component="form" onSubmit={handleSubmit}>
         <Box mb={3}>
           <Typography variant="body1" mb={1}>
@@ -101,7 +107,7 @@ const ReviewForm = ({ productId, onReviewSubmitted }) => {
             </Typography>
           </Box>
         </Box>
-        
+
         <TextField
           id="comment"
           label="Your Review"
@@ -115,7 +121,7 @@ const ReviewForm = ({ productId, onReviewSubmitted }) => {
           margin="normal"
           variant="outlined"
         />
-        
+
         <Button
           type="submit"
           variant="contained"
@@ -123,10 +129,10 @@ const ReviewForm = ({ productId, onReviewSubmitted }) => {
           disabled={loading}
           sx={{ mt: 2 }}
         >
-          {loading ? 'Submitting...' : 'Submit Review'}
+          {loading ? "Submitting..." : "Submit Review"}
         </Button>
       </Box>
-      
+
       {loading && <Loading />}
     </Paper>
   );

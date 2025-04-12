@@ -39,6 +39,8 @@ import ProductCard from "../../components/product/ProductCard";
 import { formatPrice } from "../../utils/formatters";
 import { addItemToCart } from "../../services/cart";
 import { getUserInfo } from "../../utils/auth";
+import ReviewList from "../../components/product/ReviewList";
+import api from "../../services/api";
 
 const TabPanel = ({ children, value, index, ...other }) => (
   <div hidden={value !== index} {...other}>
@@ -57,7 +59,7 @@ const ProductDetail = () => {
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  // const [reviews, setReviews] = useState([]);
+  const [reviews, setReviews] = useState([]);
   // const [reviewsLoading, setReviewsLoading] = useState(true);
   // const [reviewsError, setReviewsError] = useState(null);
 
@@ -74,73 +76,54 @@ const ProductDetail = () => {
     alert("Product added to cart!");
   };
 
+  const fetchProductData = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const productData = await getProductById(id);
+      setProduct(productData);
+
+      const mockGallery = [productData.image_url];
+      setProductImages(mockGallery);
+    } catch (err) {
+      console.error("Error fetching product:", err);
+      setError("Failed to load product. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchProducts = async () => {
+    try {
+      const response = await getAllProducts();
+      setRelatedProducts(response);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchReviews = async () => {
+    try {
+      const response = await api.get(`/reviews/${id}`);
+      setReviews(response.data);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchProductData = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const productData = await getProductById(id);
-        setProduct(productData);
-
-        const mockGallery = [productData.image_url];
-        setProductImages(mockGallery);
-      } catch (err) {
-        console.error("Error fetching product:", err);
-        setError("Failed to load product. Please try again later.");
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    const fetchProducts = async () => {
-      try {
-        const response = await getAllProducts();
-        setRelatedProducts(response);
-      } catch (error) {
-        console.error("Error fetching products:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    // const fetchReviews = async () => {
-    //   setReviewsLoading(true);
-    //   setReviewsError(null);
-    //   try {
-    //     const reviewsData = await getProductReviews(id);
-    //     setReviews(reviewsData);
-    //   } catch (err) {
-    //     console.error("Error fetching reviews:", err);
-    //     setReviewsError("Failed to load reviews.");
-    //   } finally {
-    //     setReviewsLoading(false);
-    //   }
-    // };
-
     fetchProductData();
     fetchProducts();
-    // fetchReviews();
+    fetchReviews();
   }, [id]);
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue);
   };
-
-  // const handleReviewSubmitted = () => {
-  //   const refreshReviews = async () => {
-  //     setReviewsLoading(true);
-  //     try {
-  //       const refreshedReviews = await getProductReviews(id);
-  //       setReviews(refreshedReviews);
-  //     } catch (err) {
-  //       console.error("Error refreshing reviews:", err);
-  //     } finally {
-  //       setReviewsLoading(false);
-  //     }
-  //   };
-
-  //   refreshReviews();
-  // };
 
   if (loading) {
     return <Typography>Loading...</Typography>;
@@ -254,10 +237,8 @@ const ProductDetail = () => {
                 </TabPanel>
 
                 <TabPanel value={tabValue} index={1}>
-                  <ReviewForm
-                    productId={id}
-                    // onReviewSubmitted={handleReviewSubmitted}
-                  />
+                  <ReviewList reviews={reviews} />
+                  <ReviewForm productId={id} onReviewSubmitted={fetchReviews} />
                 </TabPanel>
               </Box>
             </Box>
