@@ -181,9 +181,10 @@ const ProductDetail = () => {
               </Typography>
 
               <Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
-                <Rating value={product.rating} precision={0.5} readOnly />
+                <Rating value={product.rating || 0} precision={0.5} readOnly />
+                {/* {product.rating} */}
                 <Typography variant="body2" sx={{ ml: 1 }}>
-                  ({product.reviewCount} reviews)
+                  ({product.rating})
                 </Typography>
               </Box>
 
