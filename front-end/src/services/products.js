@@ -129,15 +129,11 @@ export const createProduct = async (productData) => {
 export const updateProduct = async (id, productData) => {
   try {
     const token = localStorage.getItem("token");
-    const response = await axios.put(
-      `${API_URL}/products/${id}/`,
-      productData,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    const response = await axios.put(`${API_URL}/products/${id}`, productData, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
     return response.data;
   } catch (error) {
     console.error(`Error memperbarui produk dengan ID ${id}:`, error);
@@ -153,7 +149,7 @@ export const updateProduct = async (id, productData) => {
 export const deleteProduct = async (id) => {
   try {
     const token = localStorage.getItem("token");
-    await axios.delete(`${API_URL}/products/${id}/`, {
+    await axios.delete(`${API_URL}/products/${id}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },

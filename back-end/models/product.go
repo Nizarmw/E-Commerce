@@ -23,8 +23,8 @@ type Product struct {
 	SellerName   string `gorm:"-" json:"-"`
 	CategoryName string `gorm:"-" json:"-"`
 
-	Seller   *User     `gorm:"foreignKey:SellerID;references:ID" json:"-"`
-	Category *Category `gorm:"foreignKey:CategoryID;references:ID" json:"-"`
+	Seller   *User     `gorm:"foreignKey:SellerID;references:ID" json:"seller"`
+	Category *Category `gorm:"foreignKey:CategoryID;references:ID" json:"category"`
 	Reviews  []Review  `gorm:"foreignKey:ProductID" json:"-"`
 }
 

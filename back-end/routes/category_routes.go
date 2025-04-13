@@ -9,12 +9,10 @@ import (
 
 func SetupCategoryRoutes(r *gin.Engine) {
 	categoryRoutes := r.Group("/categories")
-	categoryRoutes.Use(middlewares.AuthMiddleware())
-	categoryRoutes.Use(middlewares.RoleMiddleware("admin"))
 	{
-		categoryRoutes.POST("/", controllers.CreateCategory)
+		categoryRoutes.POST("/", middlewares.AuthMiddleware(), middlewares.RoleMiddleware("admin"), controllers.CreateCategory)
 		categoryRoutes.GET("/", controllers.GetCategories)
 		categoryRoutes.GET("/:id", controllers.GetCategoryByID)
-		categoryRoutes.DELETE("/:id", controllers.DeleteCategory)
+		categoryRoutes.DELETE("/:id", middlewares.AuthMiddleware(), middlewares.RoleMiddleware("admin"), controllers.DeleteCategory)
 	}
 }

@@ -54,7 +54,9 @@ const ProductDetail = () => {
   const [tabValue, setTabValue] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [isWishlisted, setIsWishlisted] = useState(false);
-  const [product, setProduct] = useState(null);
+  const [product, setProduct] = useState({
+    name: "Loading",
+  });
   const [productImages, setProductImages] = useState([]);
   const [relatedProducts, setRelatedProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -85,11 +87,10 @@ const ProductDetail = () => {
 
       const mockGallery = [productData.image_url];
       setProductImages(mockGallery);
+      setLoading(false);
     } catch (err) {
       console.error("Error fetching product:", err);
       setError("Failed to load product. Please try again later.");
-    } finally {
-      setLoading(false);
     }
   };
 
