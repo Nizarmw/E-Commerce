@@ -69,7 +69,17 @@ const Navbar = () => {
               px: 1,
             }}
           >
-            <InputBase placeholder="Search..." sx={{ color: "white", ml: 1 }} />
+            <InputBase
+              placeholder="Search..."
+              onKeyDown={(e) => {
+                const searchTerm = e.target.value;
+
+                if (searchTerm.length > 0 && e.key === "Enter") {
+                  navigate(`/products?s=${searchTerm}`);
+                }
+              }}
+              sx={{ color: "white", ml: 1 }}
+            />
             <IconButton color="inherit" size="small">
               <SearchIcon />
             </IconButton>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Box,
   Button,
@@ -27,7 +27,8 @@ import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import { getUserInfo } from "../../utils/auth";
 import { addItemToCart } from "../../services/cart";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import axios from "axios";
 
 const Products = () => {
   const [categories, setCategories] = useState([]);
@@ -39,6 +40,7 @@ const Products = () => {
   const [page, setPage] = useState(1);
   const productsPerPage = 6;
   const navigate = useNavigate();
+  const [URLSearch] = useSearchParams();
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -77,25 +79,71 @@ const Products = () => {
   //   fetchProducts();
   // }, [page, searchQuery, categoryFilter]);
 
+  const fetchProducts = async () => {
+    try {
+      // Use the product service
+      const response = await getAllProducts();
+      setProducts(response);
+    } catch (error) {
+      console.error("Error fetching products:", error);
+      // Use mock data as fallback if API fails
+    } finally {
+      setLoading(false);
+    }
+  };
   useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        // Use the product service
-        const response = await getAllProducts();
-        setProducts(response);
-      } catch (error) {
-        console.error("Error fetching products:", error);
-        // Use mock data as fallback if API fails
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProducts();
+    if (URLSearch.get("s")) {
+      handleSearch(URLSearch.get("s"));
+    } else {
+      fetchProducts();
+    }
   }, []);
 
+  // const debounce = (func, delay) => {
+  //   let timeout;
+  //   return (...args) => {
+  //     clearTimeout(timeout);
+  //     timeout = setTimeout(() => func(...args), delay);
+  //   };
+  // };
+
+  const debounce = (onChange) => {
+    let timeout;
+    return (e) => {
+      const form = e.currentTarget.value;
+      clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        onChange(form);
+      }, 1000);
+    };
+  };
+
+  const handleSearch = async (query) => {
+    try {
+      if (!query) {
+        await fetchProducts();
+        return;
+      }
+
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/products/search?q=${query}`
+      );
+
+      setProducts(res.data);
+    } catch (err) {
+      setError("Failed to search products");
+    }
+  };
+
   const handleSearchChange = (event) => {
-    setSearchQuery(event.target.value);
+    const value = event.target.value;
+    setSearchQuery(value);
+
+    debounce((event) => {
+      handleSearch(event);
+    });
+    // debouncedSearch(value);
+
     setPage(1);
   };
 
@@ -155,8 +203,10 @@ const Products = () => {
               <TextField
                 size="small"
                 placeholder="Search products"
-                value={searchQuery}
-                onChange={handleSearchChange}
+                defaultValue={URLSearch.get("s") || ""}
+                onChange={debounce((event) => {
+                  handleSearch(event);
+                })}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position="start">
@@ -167,7 +217,7 @@ const Products = () => {
                 sx={{ width: { xs: "100%", sm: "300px" } }}
               />
 
-              <FormControl sx={{ minWidth: 150 }} size="small">
+              {/* <FormControl sx={{ minWidth: 150 }} size="small">
                 <InputLabel id="category-filter-label">Category</InputLabel>
                 <Select
                   labelId="category-filter-label"
@@ -182,10 +232,10 @@ const Products = () => {
                     </MenuItem>
                   ))}
                 </Select>
-              </FormControl>
+              </FormControl> */}
             </Box>
 
-            <Box sx={{ display: "flex", gap: 1 }}>
+            {/* <Box sx={{ display: "flex", gap: 1 }}>
               <Button
                 variant="outlined"
                 startIcon={<FilterList />}
@@ -196,7 +246,7 @@ const Products = () => {
               <Button variant="contained" startIcon={<Add />} size="small">
                 Add Product
               </Button>
-            </Box>
+            </Box> */}
           </Box>
         </Card>
 
