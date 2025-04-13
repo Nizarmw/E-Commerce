@@ -107,7 +107,7 @@ const Cart = () => {
       );
 
       window.snap.pay(payment.data.snap_token);
-
+      await getCartItems();
       console.log("Payment response:", payment.data);
     } catch (error) {
       console.error("Failed to submit order:", error);

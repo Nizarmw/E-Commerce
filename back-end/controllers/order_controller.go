@@ -31,6 +31,11 @@ func CreateOrder(c *gin.Context) {
 		return
 	}
 
+	if err := services.ClearCart(order.UserID); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
 	c.JSON(http.StatusCreated, gin.H{
 		"message":     "Order created successfully",
 		"order_id":    order.ID,

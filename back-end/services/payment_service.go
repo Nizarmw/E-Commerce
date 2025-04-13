@@ -94,16 +94,16 @@ func UpdatePaymentStatus(orderID, transactionID, midtransStatus string) error {
 		return err
 	}
 
-	if paymentStatus == models.PaymentStatusSuccess {
-		var order models.Order
-		if err := config.DB.Where("id = ?", orderID).First(&order).Error; err != nil {
-			return err
-		}
+	// if paymentStatus == models.PaymentStatusSuccess {
+	// 	var order models.Order
+	// 	if err := config.DB.Where("id = ?", orderID).First(&order).Error; err != nil {
+	// 		return err
+	// 	}
 
-		if err := ClearCart(order.UserID); err != nil {
-			return err
-		}
-	}
+	// 	if err := ClearCart(order.UserID); err != nil {
+	// 		return err
+	// 	}
+	// }
 
 	return nil
 }
