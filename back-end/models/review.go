@@ -15,7 +15,7 @@ type Review struct {
 	Comment   string    `gorm:"type:text" json:"comment"`
 	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
 
-	User    *User    `gorm:"foreignKey:UserID;references:ID" json:"-"`
+	User    *User    `gorm:"foreignKey:UserID;references:ID" json:"user"`
 	Product *Product `gorm:"foreignKey:ProductID;references:ID" json:"-"`
 }
 

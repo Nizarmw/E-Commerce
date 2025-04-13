@@ -17,7 +17,7 @@ func CreateReview(review *models.Review) (*models.Review, error) {
 
 func GetReviews() ([]models.Review, error) {
 	var reviews []models.Review
-	if err := config.DB.Find(&reviews).Error; err != nil {
+	if err := config.DB.Preload("User").Find(&reviews).Error; err != nil {
 		return nil, err
 	}
 	return reviews, nil
@@ -25,7 +25,10 @@ func GetReviews() ([]models.Review, error) {
 
 func GetReviewsByProductID(productID string) ([]models.Review, error) {
 	var reviews []models.Review
-	if err := config.DB.Where("product_id = ?", productID).Find(&reviews).Error; err != nil {
+	if err := config.DB.
+		Preload("User").
+		Where("product_id = ?", productID).
+		Find(&reviews).Error; err != nil {
 		return nil, err
 	}
 	return reviews, nil
