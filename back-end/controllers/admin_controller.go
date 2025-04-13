@@ -40,7 +40,7 @@ func UpdateUserRole(c *gin.Context) {
 
 // controllers/user_controller.go
 type ToggleActiveRequest struct {
-	IsActive bool `json:"is_active" binding:"required"`
+	IsActive string `json:"is_active" binding:"required"`
 }
 
 func GetUserListByID(c *gin.Context) {
@@ -64,7 +64,9 @@ func ToggleUserActiveStatus(c *gin.Context) {
 		return
 	}
 
-	if err := services.ToggleUserActiveStatus(id, req.IsActive); err != nil {
+	isActive := req.IsActive == "true"
+
+	if err := services.ToggleUserActiveStatus(id, isActive); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}

@@ -9,7 +9,7 @@ type OrderItem struct {
 
 	Status string `gorm:"type:enum('paid','processing','shipped','delivered','cancelled');default:'paid'" json:"status"`
 
-	Order   Order   `gorm:"foreignKey:OrderID;constraint:OnDelete:CASCADE;" json:"-"`
+	Order   Order   `gorm:"foreignKey:OrderID;constraint:OnDelete:CASCADE;" json:"order"`
 	Product Product `gorm:"foreignKey:ProductID" json:"product,omitempty"`
 }
 

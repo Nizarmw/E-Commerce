@@ -9,8 +9,17 @@ import {
   Tooltip,
   TextField,
   InputAdornment,
+  formControlLabelClasses,
 } from "@mui/material";
-import { Search, Visibility, LocalShipping } from "@mui/icons-material";
+import {
+  Search,
+  Visibility,
+  LocalShipping,
+  Recycling,
+  Autorenew,
+  Cancel,
+  Inventory,
+} from "@mui/icons-material";
 import { DataGrid } from "@mui/x-data-grid";
 import DashboardLayout from "../../../layouts/DashboardLayout";
 import { formatPrice } from "../../../utils/formatters";
@@ -30,6 +39,35 @@ const Orders = () => {
     cancelled: "error",
   };
 
+  const getOrders = async () => {
+    try {
+      const response = await api.get("/seller/order-items");
+
+      console.log("Orders data:", response.data);
+
+      setOrders(response.data.data);
+      setFilteredOrders(response.data.data);
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+    }
+  };
+
+  const handleChangeStatus = async (orderId, status) => {
+    console.log("Change status for order:", orderId, "to", status);
+    try {
+      const res = await api.patch(`/seller/order-items/${orderId}/status`, {
+        status,
+      });
+
+      console.log("Status changed successfully:", res.data);
+      alert("Status changed successfully!");
+      await getOrders(); // Refresh the orders after changing status
+    } catch (error) {
+      console.error("Error changing status:", error);
+      alert("Error changing status. Please try again later.");
+    }
+  };
+
   const columns = [
     {
       field: "order_id",
@@ -37,20 +75,24 @@ const Orders = () => {
       width: 130,
     },
     {
-      field: "created_at",
+      field: "order",
       headerName: "Date",
       width: 130,
-      valueFormatter: (params) => new Date(params.value).toLocaleDateString(),
+      valueFormatter: (params) => {
+        return new Date(params.value.created_at).toDateString();
+      },
     },
     {
-      field: "customer",
       headerName: "Customer",
-      flex: 1,
+      width: 200,
+      renderCell: (params) => {
+        return params.row.order.user.name;
+      },
     },
     {
       field: "price",
       headerName: "Total",
-      width: 130,
+      flex: 1,
       renderCell: (params) => formatPrice(params.value),
     },
     {
@@ -71,21 +113,54 @@ const Orders = () => {
       width: 100,
       renderCell: (params) => (
         <Box>
-          <Tooltip title="View Details">
+          {/* <Tooltip title="View Details">
             <IconButton
               size="small"
               onClick={() => handleViewOrder(params.row.id)}
             >
               <Visibility />
             </IconButton>
-          </Tooltip>
+          </Tooltip> */}
+          {params.row.status === "paid" && (
+            <>
+              <Tooltip title="Mark as Processing">
+                <IconButton
+                  size="small"
+                  onClick={() =>
+                    handleChangeStatus(params.row.id, "processing")
+                  }
+                >
+                  <Autorenew />
+                </IconButton>
+              </Tooltip>
+
+              <Tooltip title="Cancel Order">
+                <IconButton
+                  size="small"
+                  onClick={() => handleChangeStatus(params.row.id, "cancelled")}
+                >
+                  <Cancel color="error" />
+                </IconButton>
+              </Tooltip>
+            </>
+          )}
           {params.row.status === "processing" && (
             <Tooltip title="Mark as Shipped">
               <IconButton
                 size="small"
-                onClick={() => handleShipOrder(params.row.id)}
+                onClick={() => handleChangeStatus(params.row.id, "shipped")}
               >
                 <LocalShipping />
+              </IconButton>
+            </Tooltip>
+          )}
+          {params.row.status === "shipped" && (
+            <Tooltip title="Mark as Delivered">
+              <IconButton
+                size="small"
+                onClick={() => handleChangeStatus(params.row.id, "delivered")}
+              >
+                <Inventory />
               </IconButton>
             </Tooltip>
           )}
@@ -106,18 +181,6 @@ const Orders = () => {
   //   },
   //   // Add more mock orders...
   // ];
-  const getOrders = async () => {
-    try {
-      const response = await api.get("/seller/order-items");
-
-      console.log("Orders data:", response.data);
-
-      setOrders(response.data.data);
-      setFilteredOrders(response.data.data);
-    } catch (error) {
-      console.error("Error fetching orders:", error);
-    }
-  };
 
   useEffect(() => {
     getOrders();

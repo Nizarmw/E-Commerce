@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Box,
   Container,
@@ -12,33 +12,33 @@ import {
   Link,
   Divider,
   Alert,
-} from '@mui/material';
-import { Visibility, VisibilityOff } from '@mui/icons-material';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
-import Card from '../../components/common/Card';  // Fix the import path
-import Loading from '../../components/common/Loading';
-import PublicLayout from '../../layouts/PublicLayout';
-import axios from 'axios';
-import api from '../../services/api'; // Adjust the import path as necessary
-import { API_URL } from '../../services/products';
+} from "@mui/material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
+import Card from "../../components/common/Card"; // Fix the import path
+import Loading from "../../components/common/Loading";
+import PublicLayout from "../../layouts/PublicLayout";
+import axios from "axios";
+import api from "../../services/api"; // Adjust the import path as necessary
+import { API_URL } from "../../services/products";
 
 const Login = () => {
   const [values, setValues] = useState({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
     showPassword: false,
     rememberMe: false,
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState("");
   const [userInfo, setUserInfo] = useState(null);
   const navigate = useNavigate();
 
   const handleChange = (prop) => (event) => {
     setValues({ ...values, [prop]: event.target.value });
     if (errors[prop]) {
-      setErrors({ ...errors, [prop]: '' });
+      setErrors({ ...errors, [prop]: "" });
     }
   };
 
@@ -53,13 +53,13 @@ const Login = () => {
   const validateForm = () => {
     const newErrors = {};
     if (!values.email) {
-      newErrors.email = 'Email is required';
+      newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(values.email)) {
-      newErrors.email = 'Email is invalid';
+      newErrors.email = "Email is invalid";
     }
     if (!values.password) {
-      newErrors.password = 'Password is required';
-    } 
+      newErrors.password = "Password is required";
+    }
     // else if (values.password.length < 6) {
     //   newErrors.password = 'Password must be at least 6 characters';
     // }
@@ -70,52 +70,52 @@ const Login = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (!validateForm()) return;
-    
+
     setLoading(true);
-    setErrorMessage('');
-    
+    setErrorMessage("");
+
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_API_URL}/auth/login`,
-        { 
-          email: values.email, 
-          password: values.password 
+        {
+          username_or_email: values.email,
+          password: values.password,
         },
         {
           headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
+            "Content-Type": "application/json",
+            Accept: "application/json",
           },
-          withCredentials: false // Ubah ke false untuk menghindari CORS credentials issue
+          withCredentials: false, // Ubah ke false untuk menghindari CORS credentials issue
         }
       );
-      
+
       if (response.data && response.data.token) {
-        localStorage.setItem('token', response.data.token);
-        
+        localStorage.setItem("token", response.data.token);
+
         // Simpan info user
         const userInfo = {
           name: response.data.user?.name || response.data.user?.full_name,
           email: response.data.user?.email,
-          role: response.data.user?.role || 'buyer'
+          role: response.data.user?.role || "buyer",
         };
         setUserInfo(userInfo);
-        
-        if (userInfo.role === 'admin') {
-          navigate('/dashboard');
-        } else if (userInfo.role === 'seller') {
-          navigate('/dashboard/seller'); 
+
+        if (userInfo.role === "admin") {
+          navigate("/dashboard");
+        } else if (userInfo.role === "seller") {
+          navigate("/dashboard/seller");
         } else {
-          navigate('/');
+          navigate("/");
         }
       } else {
-        throw new Error('Invalid response format');
+        throw new Error("Invalid response format");
       }
     } catch (error) {
-      console.error('Login error:', error);
+      console.error("Login error:", error);
       setErrorMessage(
-        error.response?.data?.message || 
-        'Login failed. Please check your credentials or try again later.'
+        error.response?.data?.message ||
+          "Login failed. Please check your credentials or try again later."
       );
     } finally {
       setLoading(false);
@@ -124,15 +124,18 @@ const Login = () => {
 
   return (
     <PublicLayout>
-      <Container maxWidth="sm" sx={{ 
-        py: 8,  // Add padding top and bottom
-        minHeight: 'calc(100vh - 128px)', // Account for header & footer
-        display: 'flex', 
-        alignItems: 'center',
-        position: 'relative'
-      }}>
+      <Container
+        maxWidth="sm"
+        sx={{
+          py: 8, // Add padding top and bottom
+          minHeight: "calc(100vh - 128px)", // Account for header & footer
+          display: "flex",
+          alignItems: "center",
+          position: "relative",
+        }}
+      >
         {loading && <Loading overlay text="Signing in..." />}
-        <Card variant="elevated" sx={{ width: '100%' }}>
+        <Card variant="elevated" sx={{ width: "100%" }}>
           <Card.Header>
             <Card.Title>Login</Card.Title>
           </Card.Header>
@@ -149,18 +152,18 @@ const Login = () => {
                 margin="normal"
                 required
                 value={values.email}
-                onChange={handleChange('email')}
+                onChange={handleChange("email")}
                 error={Boolean(errors.email)}
                 helperText={errors.email}
               />
               <TextField
                 fullWidth
                 label="Password"
-                type={values.showPassword ? 'text' : 'password'}
+                type={values.showPassword ? "text" : "password"}
                 margin="normal"
                 required
                 value={values.password}
-                onChange={handleChange('password')}
+                onChange={handleChange("password")}
                 error={Boolean(errors.password)}
                 helperText={errors.password}
                 InputProps={{
@@ -171,7 +174,11 @@ const Login = () => {
                         onClick={togglePasswordVisibility}
                         edge="end"
                       >
-                        {values.showPassword ? <VisibilityOff /> : <Visibility />}
+                        {values.showPassword ? (
+                          <VisibilityOff />
+                        ) : (
+                          <Visibility />
+                        )}
                       </IconButton>
                     </InputAdornment>
                   ),
@@ -199,10 +206,15 @@ const Login = () => {
               onClick={handleSubmit}
               sx={{ mt: 3, mb: 2 }}
             >
-              {loading ? 'Signing in...' : 'Sign In'}
+              {loading ? "Signing in..." : "Sign In"}
             </Button>
-            <Box sx={{ textAlign: 'center', mt: 2 }}>
-              <Link component={RouterLink} to="/forgot-password" variant="body2" sx={{ mr: 2 }}>
+            <Box sx={{ textAlign: "center", mt: 2 }}>
+              <Link
+                component={RouterLink}
+                to="/forgot-password"
+                variant="body2"
+                sx={{ mr: 2 }}
+              >
                 Forgot password?
               </Link>
               <Divider sx={{ my: 3 }}>

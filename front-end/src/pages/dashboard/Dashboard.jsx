@@ -26,6 +26,7 @@ const Dashboard = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const currentUser = getUserInfo();
 
   const checkAuth = async () => {
     if (!isAuthenticated()) {
@@ -57,16 +58,19 @@ const Dashboard = () => {
     }
   };
 
-  // const fetchUsers = async () => {
-  //   try {
-  //     const data = await api.get("");
-  //     setUsers(data);
-  //   } catch (error) {
-  //     console.error("Error fetching users:", error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
+  const fetchUsers = async () => {
+    try {
+      const res = await api.get("/api/admin/users ");
+
+      setUsers(res.data);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   // const handleRoleChange = async (userId, newRole) => {
   //   try {
@@ -79,18 +83,22 @@ const Dashboard = () => {
   //   }
   // };
 
-  // const handleDeactivate = async (userId) => {
-  //   if (window.confirm("Are you sure you want to deactivate this user?")) {
-  //     try {
-  //       await deactivateUser(userId);
-  //       fetchUsers();
-  //       alert("User deactivated successfully");
-  //     } catch (error) {
-  //       console.error("Error deactivating user:", error);
-  //       alert("Failed to deactivate user");
-  //     }
-  //   }
-  // };
+  const handleDeactivate = async (userId, currentActive) => {
+    if (window.confirm("Are you sure you want to deactivate this user?")) {
+      try {
+        const res = await api.put(`/api/admin/users/${userId}/active-status`, {
+          is_active: `${!currentActive}`,
+        });
+
+        console.log("User deactivated successfully:", res.data);
+        alert("User deactivated successfully");
+        await fetchUsers();
+      } catch (error) {
+        console.error("Error deactivating user:", error);
+        alert("Failed to deactivate user");
+      }
+    }
+  };
 
   // if (loading) {
   //   return (
@@ -108,6 +116,22 @@ const Dashboard = () => {
   //     </DashboardLayout>
   //   );
   // }
+
+  const handleRoleChange = async (userId, role) => {
+    try {
+      const res = await api.put(`/api/admin/users/${userId}/role`, {
+        role,
+      });
+
+      console.log("User deactivated successfully:", res.data);
+
+      alert("User role updated successfully");
+      await fetchUsers();
+    } catch (error) {
+      console.error("Error updating user role:", error);
+      alert("Failed to update user role");
+    }
+  };
 
   return (
     <DashboardLayout>
@@ -129,7 +153,7 @@ const Dashboard = () => {
             <Table>
               <TableHead>
                 <TableRow>
-                  <TableCell>ID</TableCell>
+                  <TableCell>No</TableCell>
                   <TableCell>Name</TableCell>
                   <TableCell>Email</TableCell>
                   <TableCell>Role</TableCell>
@@ -137,15 +161,16 @@ const Dashboard = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {users.map((user) => (
+                {users.map((user, idx) => (
                   <TableRow key={user.id} hover>
-                    <TableCell>{user.id}</TableCell>
+                    <TableCell width={100}>{idx + 1}</TableCell>
                     <TableCell>{user.name}</TableCell>
                     <TableCell>{user.email}</TableCell>
                     <TableCell>
                       <FormControl size="small" fullWidth>
                         <Select
                           value={user.role}
+                          disabled={user.id === currentUser.user_id}
                           onChange={(e) =>
                             handleRoleChange(user.id, e.target.value)
                           }
@@ -159,11 +184,14 @@ const Dashboard = () => {
                     <TableCell>
                       <Button
                         variant="contained"
-                        color="error"
+                        color={user.is_active ? "error" : "success"}
+                        disabled={user.id === currentUser.user_id}
                         size="small"
-                        onClick={() => handleDeactivate(user.id)}
+                        onClick={() =>
+                          handleDeactivate(user.id, user.is_active)
+                        }
                       >
-                        Deactivate
+                        {user.is_active ? "Deactivate" : "Activate"}
                       </Button>
                     </TableCell>
                   </TableRow>
