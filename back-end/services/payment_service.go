@@ -90,7 +90,9 @@ func UpdatePaymentStatus(orderID, transactionID, midtransStatus string) error {
 
 	if err := config.DB.Model(&models.Order{}).
 		Where("id = ?", orderID).
-		Update("status", orderStatus).Error; err != nil {
+		Updates(map[string]interface{}{
+			"status": orderStatus,
+		}).Error; err != nil {
 		return err
 	}
 
