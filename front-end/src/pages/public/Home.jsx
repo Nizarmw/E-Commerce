@@ -51,36 +51,6 @@ const Home = () => {
         setProducts(response);
       } catch (error) {
         console.error("Error fetching products:", error);
-        // Use mock data as fallback if API fails
-        setProducts([
-          {
-            id: 1,
-            name: "Premium Headphones",
-            price: 99.99,
-            rating: 4.5,
-            image: product1,
-            isNew: true,
-            discount: "20%",
-          },
-          {
-            id: 2,
-            name: "Smart Watch Series X",
-            price: 149.99,
-            rating: 4.8,
-            image: product2,
-            isNew: false,
-            discount: null,
-          },
-          {
-            id: 3,
-            name: "Wireless Earbuds Pro",
-            price: 199.99,
-            rating: 4.2,
-            image: product3,
-            isNew: true,
-            discount: "15%",
-          },
-        ]);
       } finally {
         setLoading(false);
       }
@@ -120,6 +90,13 @@ const Home = () => {
 
   // Either use API data or fallback to mock data
   const featuredProducts = products.slice(0, 3);
+
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+    }).format(price);
+  };
 
   return (
     <PublicLayout>
@@ -430,7 +407,7 @@ const Home = () => {
                           fontWeight="bold"
                           sx={{ mb: 2 }}
                         >
-                          ${product.price?.toFixed(2) || "0.00"}
+                          {formatPrice(product.price)}
                         </Typography>
                         <Stack direction="row" spacing={1}>
                           <Button
