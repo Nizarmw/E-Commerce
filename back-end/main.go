@@ -36,6 +36,8 @@ func main() {
 	routes.CartRoutes(r)
 	routes.RegisterPaymentRoutes(r)
 	routes.UserRoutes(r)
+	routes.SetupSellerRoutes(r)
+
 	log.Println("Server running on port 8080...")
 	r.Run("0.0.0.0:8080")
 }
