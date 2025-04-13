@@ -17,10 +17,11 @@ import {
   Remove as RemoveIcon,
   Delete as DeleteIcon,
 } from "@mui/icons-material";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import PublicLayout from "../../layouts/PublicLayout"; // Fix this import
 import { getCart, updateItemQuantity } from "../../services/cart";
 import axios from "axios";
+import { isAuthenticated } from "../../utils/auth";
 
 const Cart = () => {
   // Mock data - replace with Redux state
@@ -28,6 +29,7 @@ const Cart = () => {
   const [subTotal, setSubTotal] = useState(0);
   const [tax, setTax] = useState(0);
   const [total, setTotal] = useState(0);
+  const navigate = useNavigate();
 
   // Create Core API instance
 
@@ -145,6 +147,14 @@ const Cart = () => {
       document.body.removeChild(script);
     };
   }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      alert("Please login to view your cart");
+      navigate("/login", { state: { from: "/cart" } });
+      return;
+    }
+  }, [navigate]);
 
   return (
     <>

@@ -1,24 +1,29 @@
-import React from 'react';
-import { 
-  AppBar, 
-  Toolbar, 
-  Typography, 
-  Button, 
-  Box, 
-  IconButton, 
-  Menu, 
+import React from "react";
+import {
+  AppBar,
+  Toolbar,
+  Typography,
+  Button,
+  Box,
+  IconButton,
+  Menu,
   MenuItem,
   InputBase,
-  Badge
-} from '@mui/material';
-import { 
-  AccountCircle, 
-  Search as SearchIcon, 
+  Badge,
+} from "@mui/material";
+import {
+  AccountCircle,
+  Search as SearchIcon,
   ShoppingCart,
-  Notifications 
-} from '@mui/icons-material';
-import { Link, useNavigate } from 'react-router-dom';
-import { isAuthenticated, getUserInfo, removeToken, clearUserInfo } from '../../utils/auth';
+  Notifications,
+} from "@mui/icons-material";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  isAuthenticated,
+  getUserInfo,
+  removeToken,
+  clearUserInfo,
+} from "../../utils/auth";
 
 const Navbar = () => {
   const [anchorEl, setAnchorEl] = React.useState(null);
@@ -37,24 +42,34 @@ const Navbar = () => {
   const handleLogout = () => {
     removeToken();
     clearUserInfo();
-    navigate('/login');
+    navigate("/login");
     handleClose();
   };
 
   return (
     <AppBar position="sticky">
       <Toolbar>
-        <Typography variant="h6" component={Link} to="/" sx={{ flexGrow: 1, textDecoration: 'none', color: 'inherit' }}>
+        <Typography
+          variant="h6"
+          component={Link}
+          to="/"
+          sx={{ flexGrow: 1, textDecoration: "none", color: "inherit" }}
+        >
           E-Commerce
         </Typography>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
           {/* Search Box */}
-          <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: 'rgba(255,255,255,0.15)', borderRadius: 1, px: 1 }}>
-            <InputBase
-              placeholder="Search..."
-              sx={{ color: 'white', ml: 1 }}
-            />
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              bgcolor: "rgba(255,255,255,0.15)",
+              borderRadius: 1,
+              px: 1,
+            }}
+          >
+            <InputBase placeholder="Search..." sx={{ color: "white", ml: 1 }} />
             <IconButton color="inherit" size="small">
               <SearchIcon />
             </IconButton>
@@ -68,7 +83,7 @@ const Navbar = () => {
           </IconButton>
 
           {authenticated ? (
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Box sx={{ display: "flex", alignItems: "center" }}>
               {/* Notifications */}
               <IconButton color="inherit">
                 <Badge badgeContent={2} color="error">
@@ -77,7 +92,11 @@ const Navbar = () => {
               </IconButton>
 
               <Typography sx={{ mx: 2 }}>
-                Hi, {userInfo?.full_name || userInfo?.name || userInfo?.email?.split('@')[0] || 'User'}
+                Hi,{" "}
+                {userInfo?.full_name ||
+                  userInfo?.name ||
+                  userInfo?.email?.split("@")[0] ||
+                  "User"}
               </Typography>
               <IconButton onClick={handleMenu} color="inherit">
                 <AccountCircle />
@@ -87,15 +106,28 @@ const Navbar = () => {
                 open={Boolean(anchorEl)}
                 onClose={handleClose}
               >
-                <MenuItem component={Link} to="/profile" onClick={handleClose}>Profile</MenuItem>
-                <MenuItem component={Link} to="/orders" onClick={handleClose}>My Orders</MenuItem>
-                {(userInfo?.role === 'seller' || userInfo?.role === 'admin') && (
-                  <MenuItem component={Link} to="/dashboard/seller" onClick={handleClose}>
+                <MenuItem component={Link} to="/profile" onClick={handleClose}>
+                  Profile
+                </MenuItem>
+                <MenuItem component={Link} to="/orders" onClick={handleClose}>
+                  My Orders
+                </MenuItem>
+                {(userInfo?.role === "seller" ||
+                  userInfo?.role === "admin") && (
+                  <MenuItem
+                    component={Link}
+                    to="/dashboard/seller"
+                    onClick={handleClose}
+                  >
                     Seller Dashboard
                   </MenuItem>
                 )}
-                {userInfo?.role === 'admin' && (
-                  <MenuItem component={Link} to="/dashboard" onClick={handleClose}>
+                {userInfo?.role === "admin" && (
+                  <MenuItem
+                    component={Link}
+                    to="/dashboard"
+                    onClick={handleClose}
+                  >
                     Admin Dashboard
                   </MenuItem>
                 )}
@@ -104,8 +136,12 @@ const Navbar = () => {
             </Box>
           ) : (
             <Box>
-              <Button color="inherit" component={Link} to="/login">Login</Button>
-              <Button color="inherit" component={Link} to="/register">Register</Button>
+              <Button color="inherit" component={Link} to="/login">
+                Login
+              </Button>
+              <Button color="inherit" component={Link} to="/register">
+                Register
+              </Button>
             </Box>
           )}
         </Box>
