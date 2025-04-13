@@ -9,25 +9,22 @@ import (
 
 func GetSellerOrderItems(sellerID string) ([]models.OrderItem, error) {
 	var orderItems []models.OrderItem
-	err := config.DB.Preload("Product").Preload("Order").
+	err := config.DB.Preload("Product").Preload("Order").Preload("Order.User").
 		Joins("JOIN products ON products.id = order_items.product_id").
 		Where("products.seller_id = ?", sellerID).
 		Find(&orderItems).Error
-
 	return orderItems, err
 }
 
 func GetSellerOrderItemByID(orderItemID string, sellerID string) (models.OrderItem, error) {
 	var orderItem models.OrderItem
-	err := config.DB.Preload("Product").Preload("Order").
+	err := config.DB.Preload("Product").Preload("Order").Preload("Order.User").
 		Joins("JOIN products ON products.id = order_items.product_id").
 		Where("order_items.id = ? AND products.seller_id = ?", orderItemID, sellerID).
 		First(&orderItem).Error
-
 	if err != nil {
 		return orderItem, errors.New("order item not found or you don't have permission to view it")
 	}
-
 	return orderItem, nil
 }
 
