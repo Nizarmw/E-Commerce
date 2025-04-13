@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Box,
-  Typography,
   Button,
+  Typography,
   Card,
   IconButton,
   Tooltip,
@@ -11,87 +11,219 @@ import {
   DialogContent,
   DialogActions,
   TextField,
+  FormControl,
+  InputLabel,
+  Select,
   MenuItem,
-  Alert
-} from '@mui/material';
+  Alert,
+  CardMedia,
+} from "@mui/material";
 import {
+  Add as AddIcon,
   Edit as EditIcon,
   Delete as DeleteIcon,
   Visibility as VisibilityIcon,
-  Add as AddIcon,
-} from '@mui/icons-material';
-import { DataGrid } from '@mui/x-data-grid';
-import DashboardLayout from '../../../layouts/DashboardLayout';
-import { getAllProducts, deleteProduct } from '../../../services/products';
-import { getAllCategories } from '../../../services/categories';
-import { formatPrice } from '../../../utils/formatters';
+} from "@mui/icons-material";
+import { DataGrid } from "@mui/x-data-grid";
+import DashboardLayout from "../../../layouts/DashboardLayout";
+import {
+  getSellerProducts,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+} from "../../../services/products";
+import { getAllCategories } from "../../../services/categories";
+import { formatPrice } from "../../../utils/formatters";
+import api from "../../../services/api";
+import { getUserInfo } from "../../../utils/auth";
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import { styled } from "@mui/system";
+import { useNavigate } from "react-router-dom";
 
-const AdminProducts = () => {
+const VisuallyHiddenInput = styled("input")({
+  clip: "rect(0 0 0 0)",
+  clipPath: "inset(50%)",
+  height: 1,
+  overflow: "hidden",
+  position: "absolute",
+  bottom: 0,
+  left: 0,
+  whiteSpace: "nowrap",
+  width: 1,
+});
+
+const SellerProducts = () => {
   const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [errorDialog, setErrorDialog] = useState(null);
+  const [openDialog, setOpenDialog] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [formData, setFormData] = useState({
+    name: "",
+    description: "",
+    price: "",
+    stock: "",
+    categoryId: "",
+    image_url: "",
+  });
+  const [newImageUp, setNewImageUp] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    fetchProducts();
+    fetchCategories();
+  }, []);
+
+  const fetchProducts = async () => {
+    const user = getUserInfo();
+
+    try {
+      const res = await api.get("/products/");
+      setProducts(res.data);
+    } catch (err) {
+      setError("Failed to fetch products");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchCategories = async () => {
+    try {
+      const res = await api.get(`/categories/`);
+      setCategories(res.data);
+    } catch (err) {
+      console.error("Error fetching categories:", err);
+    }
+  };
+
+  const handleAdd = () => {
+    setSelectedProduct(null);
+    setFormData({
+      name: "",
+      description: "",
+      price: "",
+      stock: "",
+      categoryId: "",
+    });
+    setNewImageUp(null);
+    setErrorDialog(null);
+    setOpenDialog(true);
+  };
+
+  const handleEdit = (product) => {
+    setSelectedProduct(product);
+    setFormData({
+      name: product.name,
+      description: product.description,
+      price: product.price,
+      stock: product.stock,
+      categoryId: product.category_id,
+      image_url: product.image_url,
+    });
+    setNewImageUp(null);
+    setErrorDialog(null);
+    setOpenDialog(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this product?")) {
+      try {
+        await deleteProduct(id);
+        fetchProducts();
+      } catch (err) {
+        setError("Failed to delete product");
+      }
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (
+      !formData.name ||
+      !formData.description ||
+      !formData.price ||
+      !formData.stock ||
+      !formData.categoryId
+    ) {
+      setErrorDialog("Please fill in all required fields");
+      return;
+    }
+
+    try {
+      const form = new FormData();
+      form.append("name", formData.name);
+      form.append("description", formData.description);
+      form.append("price", formData.price);
+      form.append("stock", formData.stock);
+      form.append("category_id", formData.categoryId);
+
+      if (selectedProduct) {
+        if (newImageUp) {
+          form.append("image_url", newImageUp);
+        }
+
+        await updateProduct(selectedProduct.id, form);
+      } else {
+        if (!newImageUp) {
+          setErrorDialog("Please upload an image");
+          return;
+        }
+        form.append("image_url", newImageUp);
+
+        await createProduct(form);
+      }
+      setOpenDialog(false);
+      fetchProducts();
+    } catch (err) {
+      setError("Failed to save product");
+    }
+  };
 
   const columns = [
-    { field: 'id', headerName: 'ID', width: 90 },
-    { 
-      field: 'name', 
-      headerName: 'Product Name', 
+    { field: "id", headerName: "ID", width: 90 },
+    {
+      field: "name",
+      headerName: "Product Name",
       flex: 1,
       renderCell: (params) => (
         <Tooltip title={params.value}>
           <span>{params.value}</span>
         </Tooltip>
-      )
-    },
-    {
-      field: 'price',
-      headerName: 'Price',
-      width: 130,
-      renderCell: (params) => formatPrice(params.value),
-    },
-    { field: 'stock', headerName: 'Stock', width: 100 },
-    { 
-      field: 'category',
-      headerName: 'Category',
-      width: 130,
-      valueGetter: (params) => params.row.category?.name || 'N/A'
-    },
-    {
-      field: 'seller',
-      headerName: 'Seller',
-      width: 160,
-      valueGetter: (params) => params.row.seller?.name || 'N/A'
-    },
-    {
-      field: 'status',
-      headerName: 'Status',
-      width: 120,
-      renderCell: (params) => (
-        <Box
-          sx={{
-            px: 2,
-            py: 0.5,
-            borderRadius: 1,
-            bgcolor: params.value === 'active' ? 'success.light' : 'warning.light',
-            color: params.value === 'active' ? 'success.dark' : 'warning.dark',
-          }}
-        >
-          {params.value}
-        </Box>
       ),
     },
     {
-      field: 'actions',
-      headerName: 'Actions',
+      field: "price",
+      headerName: "Price",
+      width: 130,
+      renderCell: (params) => formatPrice(params.value),
+    },
+    { field: "stock", headerName: "Stock", width: 100 },
+    {
+      field: "category",
+      headerName: "Category",
+      width: 130,
+      valueGetter: (params) => params.row.category?.name || "N/A",
+    },
+    {
+      field: "seller",
+      headerName: "Seller",
+      width: 160,
+      valueGetter: (params) => params.row.seller?.name || "N/A",
+    },
+    {
+      field: "actions",
+      headerName: "Actions",
       width: 150,
-      sortable: false,
       renderCell: (params) => (
         <Box>
           <Tooltip title="View">
-            <IconButton size="small" onClick={() => handleView(params.row)}>
+            <IconButton
+              size="small"
+              onClick={() => {
+                navigate(`/products/${params.row.id}`);
+              }}
+            >
               <VisibilityIcon />
             </IconButton>
           </Tooltip>
@@ -101,7 +233,10 @@ const AdminProducts = () => {
             </IconButton>
           </Tooltip>
           <Tooltip title="Delete">
-            <IconButton size="small" onClick={() => handleDeleteClick(params.row)}>
+            <IconButton
+              size="small"
+              onClick={() => handleDelete(params.row.id)}
+            >
               <DeleteIcon />
             </IconButton>
           </Tooltip>
@@ -110,69 +245,15 @@ const AdminProducts = () => {
     },
   ];
 
-  useEffect(() => {
-    fetchProducts();
-    fetchCategories();
-  }, []);
-
-  const fetchProducts = async () => {
-    try {
-      const data = await getAllProducts();
-      setProducts(data);
-    } catch (err) {
-      setError('Failed to fetch products');
-      console.error('Error fetching products:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const fetchCategories = async () => {
-    try {
-      const data = await getAllCategories();
-      setCategories(data);
-    } catch (err) {
-      console.error('Error fetching categories:', err);
-    }
-  };
-
-  const handleView = (product) => {
-    // Implement view product logic
-    console.log('View product:', product);
-  };
-
-  const handleEdit = (product) => {
-    // Implement edit product logic
-    console.log('Edit product:', product);
-  };
-
-  const handleDeleteClick = (product) => {
-    setSelectedProduct(product);
-    setDeleteConfirmOpen(true);
-  };
-
-  const handleDeleteConfirm = async () => {
-    try {
-      await deleteProduct(selectedProduct.id);
-      setDeleteConfirmOpen(false);
-      fetchProducts(); // Refresh products list
-    } catch (err) {
-      setError('Failed to delete product');
-      console.error('Error deleting product:', err);
-    }
-  };
-
   return (
     <DashboardLayout>
       <Box sx={{ p: 3 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 3 }}>
-          <Typography variant="h4" component="h1">
-            Products Management
-          </Typography>
+        <Box sx={{ display: "flex", justifyContent: "space-between", mb: 3 }}>
+          <Typography variant="h4">Manage All Products</Typography>
           <Button
             variant="contained"
             startIcon={<AddIcon />}
-            onClick={() => handleEdit(null)}
+            onClick={handleAdd}
           >
             Add Product
           </Button>
@@ -191,37 +272,122 @@ const AdminProducts = () => {
             pageSize={10}
             rowsPerPageOptions={[10, 25, 50]}
             checkboxSelection
-            disableSelectionOnClick
             loading={loading}
             autoHeight
-            sx={{
-              '& .MuiDataGrid-cell': {
-                whiteSpace: 'normal',
-                lineHeight: 'normal',
-                padding: '8px',
-              },
-            }}
+            getRowId={(row) => row.id}
           />
         </Card>
 
-        {/* Delete Confirmation Dialog */}
         <Dialog
-          open={deleteConfirmOpen}
-          onClose={() => setDeleteConfirmOpen(false)}
+          open={openDialog}
+          onClose={() => setOpenDialog(false)}
+          maxWidth="sm"
+          fullWidth
         >
-          <DialogTitle>Confirm Delete</DialogTitle>
+          <DialogTitle>
+            {selectedProduct ? "Edit Product" : "Add New Product"}
+          </DialogTitle>
           <DialogContent>
-            Are you sure you want to delete this product?
-            {selectedProduct && (
-              <Typography color="error" sx={{ mt: 1 }}>
-                {selectedProduct.name}
+            <Box
+              sx={{ pt: 2, display: "flex", flexDirection: "column", gap: 2 }}
+            >
+              {errorDialog && <Alert severity="error">{errorDialog}</Alert>}
+
+              <TextField
+                required
+                fullWidth
+                label="Product Name"
+                value={formData.name}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
+              />
+              <TextField
+                required
+                fullWidth
+                label="Description"
+                multiline
+                rows={3}
+                value={formData.description}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
+              />
+              <TextField
+                required
+                fullWidth
+                label="Price"
+                type="number"
+                value={formData.price}
+                onChange={(e) =>
+                  setFormData({ ...formData, price: e.target.value })
+                }
+              />
+              <TextField
+                required
+                fullWidth
+                label="Stock"
+                type="number"
+                value={formData.stock}
+                onChange={(e) =>
+                  setFormData({ ...formData, stock: e.target.value })
+                }
+              />
+              <FormControl fullWidth>
+                <InputLabel>Category</InputLabel>
+                <Select
+                  value={formData.categoryId}
+                  label="Category"
+                  required
+                  onChange={(e) =>
+                    setFormData({ ...formData, categoryId: e.target.value })
+                  }
+                >
+                  {categories.map((category) => (
+                    <MenuItem
+                      key={category.id}
+                      selected={formData.categoryId === category.id}
+                      value={category.id}
+                    >
+                      {category.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+              <Button
+                component="label"
+                role={undefined}
+                variant="contained"
+                tabIndex={-1}
+                startIcon={<CloudUploadIcon />}
+              >
+                Upload files
+                <VisuallyHiddenInput
+                  type="file"
+                  accept="image/*"
+                  required
+                  onChange={(event) => setNewImageUp(event.target.files[0])}
+                />
+              </Button>
+              <Typography variant="body1" color="textSecondary">
+                {newImageUp ? newImageUp.name : "No file chosen"}
               </Typography>
-            )}
+
+              {formData.image_url && (
+                <CardMedia
+                  component="img"
+                  image={formData.image_url}
+                  alt={formData.name}
+                />
+              )}
+            </Box>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setDeleteConfirmOpen(false)}>Cancel</Button>
-            <Button onClick={handleDeleteConfirm} color="error" variant="contained">
-              Delete
+            <Button onClick={() => setOpenDialog(false)} type="">
+              Cancel
+            </Button>
+            <Button onClick={handleSubmit} type="submit" variant="contained">
+              {selectedProduct ? "Update" : "Create"}
             </Button>
           </DialogActions>
         </Dialog>
@@ -230,4 +396,4 @@ const AdminProducts = () => {
   );
 };
 
-export default AdminProducts;
+export default SellerProducts;

@@ -122,8 +122,7 @@ const Navbar = () => {
                 <MenuItem component={Link} to="/orders" onClick={handleClose}>
                   My Orders
                 </MenuItem>
-                {(userInfo?.role === "seller" ||
-                  userInfo?.role === "admin") && (
+                {userInfo?.role === "seller" && (
                   <MenuItem
                     component={Link}
                     to="/dashboard/seller"
