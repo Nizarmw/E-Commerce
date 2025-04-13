@@ -10,6 +10,6 @@ type Order struct {
 	CreatedAt  time.Time `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt  time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 
-	User       User        `gorm:"foreignKey:UserID" json:"user"`
+	User       *User       `gorm:"foreignKey:UserID" json:"user"`
 	OrderItems []OrderItem `gorm:"foreignKey:OrderID" json:"order_items"`
 }

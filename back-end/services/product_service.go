@@ -116,6 +116,7 @@ func SearchProducts(query string) ([]models.Product, error) {
 	err := config.DB.
 		Preload("Seller").
 		Preload("Category").
+		Preload("Reviews").
 		Where("name LIKE ?", "%"+query+"%").
 		Or("description LIKE ?", "%"+query+"%").
 		Find(&products).Error
