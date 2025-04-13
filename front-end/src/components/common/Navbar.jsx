@@ -125,7 +125,7 @@ const Navbar = () => {
                 {userInfo?.role === "admin" && (
                   <MenuItem
                     component={Link}
-                    to="/dashboard"
+                    to="/admin/dashboard"
                     onClick={handleClose}
                   >
                     Admin Dashboard

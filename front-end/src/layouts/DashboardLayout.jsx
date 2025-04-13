@@ -13,6 +13,7 @@ import {
   ShoppingCart,
   People,
   Inventory,
+  Category,
   Settings,
 } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
@@ -42,12 +43,12 @@ const DashboardLayout = ({ children }) => {
     {
       text: "Orders",
       icon: <ShoppingCart />,
-      path: "/dashboard/seller/orders",
+      path: "/dashboard/orders",
     },
     {
       text: "Settings",
       icon: <Settings />,
-      path: "/dashboard/seller/settings",
+      path: "/dashboard/settings",
     },
   ];
 
@@ -56,7 +57,8 @@ const DashboardLayout = ({ children }) => {
     { text: "Orders", icon: <ShoppingCart />, path: "/admin/orders" },
     { text: "Customers", icon: <People />, path: "/admin/customers" },
     { text: "Products", icon: <Inventory />, path: "/admin/products" },
-    { text: "Settings", icon: <Settings />, path: "/dashboard/settings" },
+    { text: "Categories", icon: <Category />, path: "/admin/categories" },
+    { text: "Settings", icon: <Settings />, path: "/admin/settings" },
   ];
 
   const menuItems = isSeller ? sellerMenuItems : adminMenuItems;

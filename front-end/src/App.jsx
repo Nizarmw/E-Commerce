@@ -24,6 +24,7 @@ import { ThemeProvider, createTheme } from "@mui/material";
 import "./styles/fonts.css"; // Add this import
 import ProductDetail from "./pages/public/ProductDetail";
 import Profile from "./pages/public/Profile";
+import CategoriesPage from "./pages/dashboard/admin/Categories";
 
 const theme = createTheme({
   palette: {
@@ -127,6 +128,7 @@ const App = () => {
         <Route path="/admin/dashboard" element={<Dashboard />} />
         <Route path="/admin/orders" element={<AdminOrders />} />
         <Route path="/admin/customers" element={<AdminCustomers />} />
+        <Route path="/admin/categories" element={<CategoriesPage />} />
         <Route path="/admin/products" element={<AdminProducts />} />
         <Route path="/admin/settings" element={<AdminSettings />} />
       </Routes>
