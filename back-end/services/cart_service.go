@@ -79,3 +79,10 @@ func DeleteCartItem(userID, cartItemID string) error {
 	}
 	return config.DB.Delete(&cartItem).Error
 }
+
+func ClearCart(userID string) error {
+	if err := config.DB.Where("user_id = ?", userID).Delete(&models.CartItem{}).Error; err != nil {
+		return err
+	}
+	return nil
+}
