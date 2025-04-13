@@ -7,16 +7,19 @@ import {
   Avatar,
   Paper,
   Stack,
+  TextField,
+  Button,
+  Alert,
 } from "@mui/material";
 import api from "../../services/api";
-import { use } from "react";
 import { getUserInfo, isAuthenticated } from "../../utils/auth";
 import { useNavigate } from "react-router-dom";
 
 const Profile = () => {
-  const userInfo = getUserInfo();
-  const [user, setUser] = useState({});
   const navigate = useNavigate();
+  const [user, setUser] = useState({ name: "", email: "" });
+  const [formData, setFormData] = useState({ name: "", email: "" });
+  const [successMessage, setSuccessMessage] = useState("");
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -24,21 +27,22 @@ const Profile = () => {
       navigate("/login", { state: { from: "/profile" } });
       return;
     }
-  }, [navigate]);
 
-  const getUser = async () => {
-    try {
-      const user = await api.get("/profile");
+    const getUser = async () => {
+      try {
+        const response = await api.get("/profile");
+        setUser(response.data);
+        setFormData({
+          name: response.data.name || "",
+          email: response.data.email || "",
+        });
+      } catch (error) {
+        console.error("Error getting user info:", error);
+      }
+    };
 
-      console.log(user.data);
-    } catch (error) {
-      console.error("Error getting user info:", error);
-    }
-  };
-
-  useEffect(() => {
     getUser();
-  }, []);
+  }, [navigate]);
 
   const getInitials = (name) => {
     if (!name) return "A";
@@ -49,23 +53,70 @@ const Profile = () => {
       .toUpperCase();
   };
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await api.put("/profile", formData);
+      setUser(res.data);
+      setSuccessMessage("Profile updated successfully!");
+    } catch (err) {
+      console.error("Update failed:", err);
+    }
+  };
+
   return (
     <PublicLayout>
       <Container maxWidth="sm" sx={{ mt: 6 }}>
         <Paper elevation={3} sx={{ p: 4, borderRadius: 3 }}>
           <Stack direction="column" alignItems="center" spacing={2}>
             <Avatar sx={{ width: 100, height: 100, fontSize: 36 }}>
-              {getInitials(userInfo?.name)}
+              {getInitials(user.name || "Anonymous User")}
             </Avatar>
 
             <Typography variant="h5" fontWeight={600}>
-              Hello, {userInfo?.name || "Anonymous User"}
+              Hello, {user.name || "Anonymous User"}
             </Typography>
 
             <Typography variant="body1" color="text.secondary">
-              {userInfo?.email || "Email not provided"}
+              {user.email || "Email not provided"}
             </Typography>
           </Stack>
+
+          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 4 }}>
+            {successMessage && (
+              <Alert severity="success" sx={{ mb: 2 }}>
+                {successMessage}
+              </Alert>
+            )}
+
+            <TextField
+              fullWidth
+              name="name"
+              label="Full Name"
+              value={formData.name}
+              onChange={handleChange}
+              margin="normal"
+            />
+            <TextField
+              fullWidth
+              name="email"
+              label="Email"
+              value={formData.email}
+              onChange={handleChange}
+              margin="normal"
+            />
+            <Button type="submit" variant="contained" fullWidth sx={{ mt: 2 }}>
+              Save Changes
+            </Button>
+          </Box>
         </Paper>
       </Container>
     </PublicLayout>
