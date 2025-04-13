@@ -58,52 +58,77 @@ func CreateSnapToken(orderID string) (string, error) {
 }
 
 func UpdatePaymentStatus(orderID, transactionID, midtransStatus string) error {
+	tx := config.DB.Begin()
+
 	var paymentStatus string
 	var orderStatus string
 
 	switch midtransStatus {
 	case "settlement", "capture":
 		paymentStatus = models.PaymentStatusSuccess
-		orderStatus = "paid"
+		orderStatus = models.OrderStatusPaid
 	case "cancel", "deny":
 		paymentStatus = models.PaymentStatusCancel
-		orderStatus = "cancelled"
+		orderStatus = models.OrderStatusCancelled
 	case "expire":
 		paymentStatus = models.PaymentStatusExpired
-		orderStatus = "cancelled"
+		orderStatus = models.OrderStatusCancelled
 	case "pending":
 		paymentStatus = models.PaymentStatusPending
-		orderStatus = "pending"
+		orderStatus = models.OrderStatusPending
 	default:
 		paymentStatus = models.PaymentStatusFailed
-		orderStatus = "cancelled"
+		orderStatus = models.OrderStatusCancelled
 	}
 
-	if err := config.DB.Model(&models.Payment{}).
+	if err := tx.Model(&models.Payment{}).
 		Where("order_id = ?", orderID).
 		Updates(map[string]interface{}{
 			"status":         paymentStatus,
 			"transaction_id": transactionID,
 		}).Error; err != nil {
+		tx.Rollback()
 		return err
 	}
 
-	if err := config.DB.Model(&models.Order{}).
+	if err := tx.Model(&models.Order{}).
 		Where("id = ?", orderID).
 		Update("status", orderStatus).Error; err != nil {
+		tx.Rollback()
 		return err
 	}
 
-	// if paymentStatus == models.PaymentStatusSuccess {
-	// 	var order models.Order
-	// 	if err := config.DB.Where("id = ?", orderID).First(&order).Error; err != nil {
-	// 		return err
-	// 	}
+	if paymentStatus == models.PaymentStatusSuccess {
+		if err := tx.Model(&models.OrderItem{}).
+			Where("order_id = ?", orderID).
+			Update("status", models.OrderItemStatusPaid).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
 
-	// 	if err := ClearCart(order.UserID); err != nil {
-	// 		return err
-	// 	}
-	// }
+		var order models.Order
+		if err := tx.Where("id = ?", orderID).First(&order).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
+
+		tx.Commit()
+
+		if err := ClearCart(order.UserID); err != nil {
+			return err
+		}
+	} else if orderStatus == models.OrderStatusCancelled {
+		if err := tx.Model(&models.OrderItem{}).
+			Where("order_id = ?", orderID).
+			Update("status", models.OrderItemStatusCancelled).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
+
+		tx.Commit()
+	} else {
+		tx.Commit()
+	}
 
 	return nil
 }

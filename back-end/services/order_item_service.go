@@ -34,18 +34,22 @@ func GetSellerOrderItemByID(orderItemID string, sellerID string) (models.OrderIt
 }
 
 func UpdateOrderItemStatus(orderItemID string, sellerID string, newStatus string) error {
-	var orderItem models.OrderItem
+	tx := config.DB.Begin()
 
-	if err := config.DB.Preload("Product").Where("id = ?", orderItemID).First(&orderItem).Error; err != nil {
+	var orderItem models.OrderItem
+	if err := tx.Preload("Product").Where("id = ?", orderItemID).First(&orderItem).Error; err != nil {
+		tx.Rollback()
 		return errors.New("order item not found")
 	}
 
 	if orderItem.Product.SellerID != sellerID {
+		tx.Rollback()
 		return errors.New("unauthorized: you are not the seller of this product")
 	}
 
 	allowedNextStatuses, exists := models.ValidStatusTransitions[orderItem.Status]
 	if !exists {
+		tx.Rollback()
 		return errors.New("current status is invalid")
 	}
 
@@ -58,8 +62,18 @@ func UpdateOrderItemStatus(orderItemID string, sellerID string, newStatus string
 	}
 
 	if !isValidTransition {
+		tx.Rollback()
 		return fmt.Errorf("invalid status transition: cannot change from %s to %s", orderItem.Status, newStatus)
 	}
 
-	return config.DB.Model(&orderItem).Update("status", newStatus).Error
+	if err := tx.Model(&orderItem).Update("status", newStatus).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	orderID := orderItem.OrderID
+
+	tx.Commit()
+
+	return UpdateOrderStatusBasedOnItems(orderID)
 }

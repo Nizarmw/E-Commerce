@@ -138,3 +138,84 @@ func DeleteOrder(id string) error {
 	tx.Commit()
 	return nil
 }
+func UpdateOrderStatusBasedOnItems(orderID string) error {
+	tx := config.DB.Begin()
+
+	var order models.Order
+	if err := tx.Preload("OrderItems").First(&order, "id = ?", orderID).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	if order.Status == models.OrderStatusCancelled || order.Status == models.OrderStatusCompleted {
+		tx.Commit()
+		return nil
+	}
+
+	if order.Status != models.OrderStatusPaid && order.Status != models.OrderStatusProcessing &&
+		order.Status != models.OrderStatusShipped {
+		tx.Commit()
+		return nil
+	}
+
+	var nonCancelledItems []models.OrderItem
+	for _, item := range order.OrderItems {
+		if item.Status != models.OrderItemStatusCancelled {
+			nonCancelledItems = append(nonCancelledItems, item)
+		}
+	}
+
+	if len(nonCancelledItems) == 0 {
+		order.Status = models.OrderStatusCancelled
+		if err := tx.Save(&order).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
+		tx.Commit()
+		return nil
+	}
+
+	allShipped := true
+	allDelivered := true
+	hasProcessing := false
+
+	for _, item := range nonCancelledItems {
+		if item.Status != models.OrderItemStatusShipped && item.Status != models.OrderItemStatusDelivered {
+			allShipped = false
+		}
+
+		if item.Status != models.OrderItemStatusDelivered {
+			allDelivered = false
+		}
+
+		if item.Status == models.OrderItemStatusProcessing {
+			hasProcessing = true
+		}
+	}
+
+	var newStatus string
+
+	if allDelivered {
+		newStatus = models.OrderStatusCompleted
+	} else if allShipped {
+		newStatus = models.OrderStatusShipped
+	} else if hasProcessing {
+		newStatus = models.OrderStatusProcessing
+	} else if order.Status == models.OrderStatusPaid {
+		newStatus = models.OrderStatusProcessing
+	} else {
+		tx.Commit()
+		return nil
+	}
+
+	if order.Status != newStatus {
+		order.Status = newStatus
+		if err := tx.Save(&order).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	tx.Commit()
+	return nil
+}
