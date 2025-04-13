@@ -27,6 +27,7 @@ import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import { getUserInfo } from "../../utils/auth";
 import { addItemToCart } from "../../services/cart";
+import { useNavigate } from "react-router-dom";
 
 const Products = () => {
   const [categories, setCategories] = useState([]);
@@ -37,6 +38,7 @@ const Products = () => {
   const [categoryFilter, setCategoryFilter] = useState("All");
   const [page, setPage] = useState(1);
   const productsPerPage = 6;
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchCategories = async () => {

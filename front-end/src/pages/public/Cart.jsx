@@ -21,7 +21,8 @@ import { Link, useNavigate } from "react-router-dom";
 import PublicLayout from "../../layouts/PublicLayout"; // Fix this import
 import { getCart, updateItemQuantity } from "../../services/cart";
 import axios from "axios";
-import { isAuthenticated } from "../../utils/auth";
+import { getUserInfo, isAuthenticated } from "../../utils/auth";
+import api from "../../services/api";
 
 const Cart = () => {
   // Mock data - replace with Redux state
@@ -56,31 +57,12 @@ const Cart = () => {
   }, []);
 
   const handleQuantityChange = async (itemId, quantity) => {
-    // setCartItems((items) =>
-    //   items.map((item) =>
-    //     item.id === itemId
-    //       ? { ...item, quantity: Math.max(1, item.quantity + change) }
-    //       : item
-    //   )
-    // );
-
     try {
       await updateItemQuantity(itemId, quantity); // Update quantity in the backend
       await getCartItems(); // Fetch updated cart items
     } catch (error) {
       console.error("Error updating item quantity:", error);
     }
-  };
-
-  const handleRemoveItem = (itemId) => {
-    setCartItems((items) => items.filter((item) => item.id !== itemId));
-  };
-
-  const calculateSubtotal = () => {
-    return cartItems.reduce(
-      (total, item) => total + item.price * item.quantity,
-      0
-    );
   };
 
   const formatPrice = (price) => {
@@ -129,6 +111,19 @@ const Cart = () => {
       console.log("Payment response:", payment.data);
     } catch (error) {
       console.error("Failed to submit order:", error);
+    }
+  };
+
+  const handleDeleteItem = async (itemId) => {
+    try {
+      const userInfo = getUserInfo();
+      const res = await api.delete(`/cart/users/${userInfo.user_id}/${itemId}`);
+      await getCartItems();
+
+      console.log("Item deleted:", res);
+    } catch (error) {
+      alert("Failed to delete item from cart");
+      console.error("Error deleting item:", error);
     }
   };
 
@@ -256,7 +251,7 @@ const Cart = () => {
                           <Grid item>
                             <IconButton
                               color="error"
-                              onClick={() => handleRemoveItem(item.id)}
+                              onClick={() => handleDeleteItem(item.id)}
                             >
                               <DeleteIcon />
                             </IconButton>
