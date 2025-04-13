@@ -12,6 +12,7 @@ func SetupProductRoutes(r *gin.Engine) {
 	{
 		productRoutes.GET("/", controllers.GetProducts)
 		productRoutes.GET("/:id", controllers.GetProductByID)
+		productRoutes.GET("/search", controllers.SearchProducts)
 
 		productRoutes.Use(middlewares.AuthMiddleware())
 		productRoutes.POST("/", controllers.CreateProduct)

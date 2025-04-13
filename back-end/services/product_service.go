@@ -111,3 +111,34 @@ func DeleteProduct(product *models.Product) error {
 	}
 	return config.DB.Delete(product).Error
 }
+func SearchProducts(query string) ([]models.Product, error) {
+	var products []models.Product
+	err := config.DB.
+		Preload("Seller").
+		Preload("Category").
+		Where("name LIKE ?", "%"+query+"%").
+		Or("description LIKE ?", "%"+query+"%").
+		Find(&products).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	for i := range products {
+		if products[i].Seller != nil {
+			products[i].SellerName = products[i].Seller.Name
+		}
+		if products[i].Category != nil {
+			products[i].CategoryName = products[i].Category.Name
+		}
+		if len(products[i].Reviews) > 0 {
+			var total int
+			for _, review := range products[i].Reviews {
+				total += review.Rating
+			}
+			products[i].Rating = float64(total) / float64(len(products[i].Reviews))
+		}
+	}
+
+	return products, nil
+}
