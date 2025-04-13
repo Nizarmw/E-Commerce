@@ -42,8 +42,8 @@ func Register(c *gin.Context) {
 
 func Login(c *gin.Context) {
 	var req struct {
-		Email    string `json:"email" binding:"required,email"`
-		Password string `json:"password" binding:"required"`
+		UsernameOrEmail string `json:"username_or_email" binding:"required"`
+		Password        string `json:"password" binding:"required"`
 	}
 
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -52,13 +52,19 @@ func Login(c *gin.Context) {
 	}
 
 	var user models.User
-	if err := config.DB.Where("email = ?", req.Email).First(&user).Error; err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
+
+	if err := config.DB.Where("email = ? OR name = ?", req.UsernameOrEmail, req.UsernameOrEmail).First(&user).Error; err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid username/email or password"})
+		return
+	}
+
+	if !user.IsActive {
+		c.JSON(http.StatusForbidden, gin.H{"error": "Account is deactivated"})
 		return
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid email or password"})
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid username/email or password"})
 		return
 	}
 
@@ -72,7 +78,6 @@ func Login(c *gin.Context) {
 		"message": "Login successful",
 		"token":   token,
 	})
-
 }
 
 func Logout(c *gin.Context) {

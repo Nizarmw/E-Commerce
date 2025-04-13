@@ -9,10 +9,15 @@ import (
 
 func GetSellerOrderItems(sellerID string) ([]models.OrderItem, error) {
 	var orderItems []models.OrderItem
-	err := config.DB.Preload("Product").Preload("Order").Preload("Order.User").
+
+	err := config.DB.
+		Preload("Product").
+		Preload("Order").
+		Preload("Order.User").
 		Joins("JOIN products ON products.id = order_items.product_id").
 		Where("products.seller_id = ?", sellerID).
 		Find(&orderItems).Error
+
 	return orderItems, err
 }
 

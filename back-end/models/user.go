@@ -13,6 +13,7 @@ type User struct {
 	Email     string    `gorm:"size:255;unique;not null" json:"email"`
 	Password  string    `gorm:"not null" json:"password"`
 	Role      string    `gorm:"type:enum('admin','seller','buyer');default:'buyer'" json:"role"`
+	IsActive  bool      `gorm:"default:true" json:"is_active"`
 	CreatedAt time.Time `gorm:"autoCreateTime" json:"created_at"`
 	UpdatedAt time.Time `gorm:"autoUpdateTime" json:"updated_at"`
 

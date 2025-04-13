@@ -1,3 +1,4 @@
+// routes/admin_routes.go
 package routes
 
 import (
@@ -7,11 +8,13 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func AdminRoutes(r *gin.Engine) {
-	admin := r.Group("/admin")
-	admin.Use(middlewares.RoleMiddleware("admin"))
-	{
-		admin.GET("/users", controllers.GetAllUsers)
-		admin.PUT("/users/:id/role", controllers.UpdateUserRole)
-	}
+func SetupAdminRoutes(router *gin.Engine) {
+	adminGroup := router.Group("/api/admin")
+	adminGroup.Use(middlewares.AuthMiddleware())
+	adminGroup.Use(middlewares.RoleMiddleware("admin"))
+
+	adminGroup.GET("/users", controllers.GetAllUsers)
+	adminGroup.GET("/users/:id", controllers.GetUserListByID)
+	adminGroup.PUT("/users/:id/role", controllers.UpdateUserRole)
+	adminGroup.PUT("/users/:id/active-status", controllers.ToggleUserActiveStatus)
 }
