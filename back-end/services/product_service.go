@@ -31,12 +31,25 @@ func GetProductByID(id string) (*models.Product, error) {
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, errors.New("product not found")
 	}
+	if err != nil {
+		return nil, err
+	}
 
 	if product.Seller != nil {
 		product.SellerName = product.Seller.Name
 	}
 	if product.Category != nil {
 		product.CategoryName = product.Category.Name
+	}
+
+	if len(product.Reviews) > 0 {
+		var total int
+		for _, review := range product.Reviews {
+			total += review.Rating
+		}
+		product.Rating = float64(total) / float64(len(product.Reviews))
+	} else {
+		product.Rating = 0
 	}
 
 	return &product, nil
@@ -60,6 +73,16 @@ func GetProducts() ([]models.Product, error) {
 		}
 		if products[i].Category != nil {
 			products[i].CategoryName = products[i].Category.Name
+		}
+
+		if len(products[i].Reviews) > 0 {
+			var total int
+			for _, review := range products[i].Reviews {
+				total += review.Rating
+			}
+			products[i].Rating = float64(total) / float64(len(products[i].Reviews))
+		} else {
+			products[i].Rating = 0
 		}
 	}
 
