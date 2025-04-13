@@ -14,11 +14,13 @@ import { Search, Visibility, LocalShipping } from "@mui/icons-material";
 import { DataGrid } from "@mui/x-data-grid";
 import DashboardLayout from "../../../layouts/DashboardLayout";
 import { formatPrice } from "../../../utils/formatters";
+import api from "../../../services/api";
 
 const Orders = () => {
-  const [tab, setTab] = useState(0);
+  const [tab, setTab] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
   const [orders, setOrders] = useState([]);
+  const [filteredOrders, setFilteredOrders] = useState([]);
 
   const statusColors = {
     pending: "warning",
@@ -30,12 +32,12 @@ const Orders = () => {
 
   const columns = [
     {
-      field: "orderNumber",
+      field: "order_id",
       headerName: "Order #",
       width: 130,
     },
     {
-      field: "date",
+      field: "created_at",
       headerName: "Date",
       width: 130,
       valueFormatter: (params) => new Date(params.value).toLocaleDateString(),
@@ -46,7 +48,7 @@ const Orders = () => {
       flex: 1,
     },
     {
-      field: "total",
+      field: "price",
       headerName: "Total",
       width: 130,
       renderCell: (params) => formatPrice(params.value),
@@ -104,8 +106,22 @@ const Orders = () => {
   //   },
   //   // Add more mock orders...
   // ];
+  const getOrders = async () => {
+    try {
+      const response = await api.get("/seller/order-items");
 
-  useEffect(() => {}, []);
+      console.log("Orders data:", response.data);
+
+      setOrders(response.data.data);
+      setFilteredOrders(response.data.data);
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+    }
+  };
+
+  useEffect(() => {
+    getOrders();
+  }, []);
 
   const handleTabChange = (event, newValue) => {
     setTab(newValue);
@@ -119,13 +135,22 @@ const Orders = () => {
     console.log("Ship order:", orderId);
   };
 
-  const filteredOrders = orders.filter((order) => {
-    if (!searchTerm) return true;
-    return (
-      order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      order.customer.toLowerCase().includes(searchTerm.toLowerCase())
+  useEffect(() => {
+    setFilteredOrders(
+      orders.filter((order) => {
+        if (tab === "all") return true;
+        return order.status.toLowerCase() === tab;
+      })
     );
-  });
+  }, [tab]);
+
+  // const filteredOrders = orders.filter((order) => {
+  //   if (!searchTerm) return true;
+  //   return (
+  //     order.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //     order.customer.toLowerCase().includes(searchTerm.toLowerCase())
+  //   );
+  // });
 
   return (
     <DashboardLayout>
@@ -133,12 +158,12 @@ const Orders = () => {
         <Paper sx={{ width: "100%", mb: 2 }}>
           <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
             <Tabs value={tab} onChange={handleTabChange}>
-              <Tab label="All Orders" />
-              <Tab label="Pending" />
-              <Tab label="Processing" />
-              <Tab label="Shipped" />
-              <Tab label="Delivered" />
-              <Tab label="Cancelled" />
+              <Tab label="All Orders" value="all" />
+              <Tab label="Paid" value="paid" />
+              <Tab label="Processing" value="processing" />
+              <Tab label="Shipped" value="shipped" />
+              <Tab label="Delivered" value="completed" />
+              <Tab label="Cancelled" value="cancelled" />
             </Tabs>
           </Box>
         </Paper>
