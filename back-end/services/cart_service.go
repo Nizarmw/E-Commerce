@@ -72,6 +72,10 @@ func UpdateCartItem(cartItemID string, newQuantity int) (*models.CartItem, error
 	return &cartItem, nil
 }
 
-func DeleteCartItem(cartItemID string) error {
-	return config.DB.Delete(&models.CartItem{}, "id = ?", cartItemID).Error
+func DeleteCartItem(userID, cartItemID string) error {
+	var cartItem models.CartItem
+	if err := config.DB.First(&cartItem, "id = ? AND user_id = ?", cartItemID, userID).Error; err != nil {
+		return errors.New("cart item not found or unauthorized")
+	}
+	return config.DB.Delete(&cartItem).Error
 }

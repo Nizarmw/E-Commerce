@@ -58,27 +58,43 @@ func CreateSnapToken(orderID string) (string, error) {
 }
 
 func UpdatePaymentStatus(orderID, transactionID, midtransStatus string) error {
-	var status string
+	var paymentStatus string
+	var orderStatus string
 
 	switch midtransStatus {
 	case "settlement", "capture":
-		status = models.PaymentStatusSuccess
-	case "cancel":
-		status = models.PaymentStatusCancel
+		paymentStatus = models.PaymentStatusSuccess
+		orderStatus = "paid"
+	case "cancel", "deny":
+		paymentStatus = models.PaymentStatusCancel
+		orderStatus = "cancelled"
 	case "expire":
-		status = models.PaymentStatusExpired
+		paymentStatus = models.PaymentStatusExpired
+		orderStatus = "cancelled"
 	case "pending":
-		status = models.PaymentStatusPending
+		paymentStatus = models.PaymentStatusPending
+		orderStatus = "pending"
 	default:
-		status = models.PaymentStatusFailed
+		paymentStatus = models.PaymentStatusFailed
+		orderStatus = "cancelled"
 	}
 
-	return config.DB.Model(&models.Payment{}).
+	if err := config.DB.Model(&models.Payment{}).
 		Where("order_id = ?", orderID).
 		Updates(map[string]interface{}{
-			"status":         status,
+			"status":         paymentStatus,
 			"transaction_id": transactionID,
-		}).Error
+		}).Error; err != nil {
+		return err
+	}
+
+	if err := config.DB.Model(&models.Order{}).
+		Where("id = ?", orderID).
+		Update("status", orderStatus).Error; err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func GetPaymentByOrderID(orderID string) (*models.Payment, error) {
