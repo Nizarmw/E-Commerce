@@ -117,7 +117,7 @@ const App = () => {
         <Route path="/search" element={<SearchResults />} />{" "}
         {/* Add this route */}
         <Route path="/orders" element={<OrderHistory />} />
-        <Route path="/order/:id" element={<OrderDetail />} />
+        {/* <Route path="/order/:id" element={<OrderDetail />} /> */}
         {/* Seller Dashboard Routes */}
         <Route path="/dashboard/seller" element={<SellerDashboard />} />
         <Route path="/dashboard/products" element={<SellerProducts />} />{" "}

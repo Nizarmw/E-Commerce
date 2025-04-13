@@ -319,10 +319,22 @@ const OrderHistory = () => {
                           {formatPrice(item.product.price)}
                         </Typography>
                       </Box>
-                      <Box>
+                      <Box
+                        sx={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: 3,
+                          alignItems: "flex-end",
+                        }}
+                      >
                         <Typography variant="subtitle2">
                           {formatPrice(item.price)}
                         </Typography>
+                        <Chip
+                          label={item.status}
+                          color={getStatusColor(item.status)}
+                          size="small"
+                        />
                       </Box>
                     </Box>
                   ))}
