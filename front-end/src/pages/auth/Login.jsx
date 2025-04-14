@@ -15,16 +15,14 @@ import {
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { Link as RouterLink, useNavigate } from "react-router-dom";
-import Card from "../../components/common/Card"; // Fix the import path
+import Card from "../../components/common/Card";
 import Loading from "../../components/common/Loading";
 import PublicLayout from "../../layouts/PublicLayout";
-import axios from "axios";
-import api from "../../services/api"; // Adjust the import path as necessary
-import { API_URL } from "../../services/products";
+import api from "../../services/api";
 
 const Login = () => {
   const [values, setValues] = useState({
-    email: "",
+    usernameOrEmail: "",
     password: "",
     showPassword: false,
     rememberMe: false,
@@ -32,13 +30,17 @@ const Login = () => {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [userInfo, setUserInfo] = useState(null);
   const navigate = useNavigate();
 
   const handleChange = (prop) => (event) => {
     setValues({ ...values, [prop]: event.target.value });
+    // Clear error when user types
     if (errors[prop]) {
       setErrors({ ...errors, [prop]: "" });
+    }
+    // Clear any general error message
+    if (errorMessage) {
+      setErrorMessage("");
     }
   };
 
@@ -52,19 +54,30 @@ const Login = () => {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!values.email) {
-      newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(values.email)) {
-      newErrors.email = "Email is invalid";
+    if (!values.usernameOrEmail) {
+      newErrors.usernameOrEmail = "Username or Email is required";
+    } else if (
+      values.usernameOrEmail.includes("@") && 
+      !/\S+@\S+\.\S+/.test(values.usernameOrEmail)
+    ) {
+      // Only validate as email if it contains an @ symbol
+      newErrors.usernameOrEmail = "Email is invalid";
     }
+    
     if (!values.password) {
       newErrors.password = "Password is required";
     }
-    // else if (values.password.length < 6) {
-    //   newErrors.password = 'Password must be at least 6 characters';
-    // }
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const saveAuthData = (userData, token) => {
+    // Store authentication data in localStorage
+    localStorage.setItem('user', JSON.stringify(userData));
+    if (token) {
+      localStorage.setItem('token', token);
+    }
   };
 
   const handleSubmit = async (event) => {
@@ -75,47 +88,43 @@ const Login = () => {
     setErrorMessage("");
 
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/auth/login`,
-        {
-          username_or_email: values.email,
-          password: values.password,
-        },
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-          withCredentials: false, // Ubah ke false untuk menghindari CORS credentials issue
-        }
-      );
-
-      if (response.data && response.data.token) {
-        localStorage.setItem("token", response.data.token);
-
-        // Simpan info user
-        const userInfo = {
-          name: response.data.user?.name || response.data.user?.full_name,
-          email: response.data.user?.email,
-          role: response.data.user?.role || "buyer",
-        };
-        setUserInfo(userInfo);
-
-        if (userInfo.role === "admin") {
-          navigate("/dashboard");
-        } else if (userInfo.role === "seller") {
-          navigate("/dashboard/seller");
+      const response = await api.post("/auth/login", {
+        username_or_email: values.usernameOrEmail,
+        password: values.password,
+      });
+      
+      // Check if login was successful and user data exists
+      if (response.data && response.data.message === "Login successful") {
+        if (response.data.user) {
+          // Save auth data and token if available
+          saveAuthData(
+            response.data.user, 
+            response.data.token || null
+          );
+          
+          // Navigate based on user role
+          const { role } = response.data.user;
+          
+          if (role === "admin") {
+            navigate("/dashboard");
+          } else if (role === "seller") {
+            navigate("/dashboard/seller");
+          } else {
+            navigate("/");
+          }
         } else {
+          setErrorMessage("Login successful but user data is missing");
           navigate("/");
         }
       } else {
-        throw new Error("Invalid response format");
+        setErrorMessage(response.data?.message || "Login failed. Please try again.");
       }
     } catch (error) {
       console.error("Login error:", error);
       setErrorMessage(
+        error.response?.data?.error ||
         error.response?.data?.message ||
-          "Login failed. Please check your credentials or try again later."
+        "Login failed. Please check your credentials or try again later."
       );
     } finally {
       setLoading(false);
@@ -127,8 +136,8 @@ const Login = () => {
       <Container
         maxWidth="sm"
         sx={{
-          py: 8, // Add padding top and bottom
-          minHeight: "calc(100vh - 128px)", // Account for header & footer
+          py: 8,
+          minHeight: "calc(100vh - 128px)",
           display: "flex",
           alignItems: "center",
           position: "relative",
@@ -148,13 +157,13 @@ const Login = () => {
             <Box component="form" onSubmit={handleSubmit}>
               <TextField
                 fullWidth
-                label="Email"
+                label="Username or Email"
                 margin="normal"
                 required
-                value={values.email}
-                onChange={handleChange("email")}
-                error={Boolean(errors.email)}
-                helperText={errors.email}
+                value={values.usernameOrEmail}
+                onChange={handleChange("usernameOrEmail")}
+                error={Boolean(errors.usernameOrEmail)}
+                helperText={errors.usernameOrEmail}
               />
               <TextField
                 fullWidth
@@ -174,11 +183,7 @@ const Login = () => {
                         onClick={togglePasswordVisibility}
                         edge="end"
                       >
-                        {values.showPassword ? (
-                          <VisibilityOff />
-                        ) : (
-                          <Visibility />
-                        )}
+                        {values.showPassword ? <VisibilityOff /> : <Visibility />}
                       </IconButton>
                     </InputAdornment>
                   ),
@@ -187,7 +192,6 @@ const Login = () => {
               <FormControlLabel
                 control={
                   <Checkbox
-                    value="remember"
                     color="primary"
                     checked={values.rememberMe}
                     onChange={handleCheckbox}
@@ -195,19 +199,16 @@ const Login = () => {
                 }
                 label="Remember me"
               />
+              <Button
+                type="submit"
+                fullWidth
+                variant="contained"
+                disabled={loading}
+                sx={{ mt: 3, mb: 2 }}
+              >
+                {loading ? "Signing in..." : "Sign In"}
+              </Button>
             </Box>
-          </Card.Content>
-          <Card.Footer>
-            <Button
-              type="submit"
-              fullWidth
-              variant="contained"
-              disabled={loading}
-              onClick={handleSubmit}
-              sx={{ mt: 3, mb: 2 }}
-            >
-              {loading ? "Signing in..." : "Sign In"}
-            </Button>
             <Box sx={{ textAlign: "center", mt: 2 }}>
               <Link
                 component={RouterLink}
@@ -226,7 +227,7 @@ const Login = () => {
                 Don't have an account? Sign Up
               </Link>
             </Box>
-          </Card.Footer>
+          </Card.Content>
         </Card>
       </Container>
     </PublicLayout>

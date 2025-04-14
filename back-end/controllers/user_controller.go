@@ -67,6 +67,8 @@ func (uc *UserController) UpdateProfile(c *gin.Context) {
 		"updatedAt": updatedUser.UpdatedAt,
 	})
 }
+
+// unsecure search user
 func SearchUser(c *gin.Context) {
 	name := c.Query("name")
 
