@@ -24,9 +24,12 @@ const ReviewList = ({ reviews }) => {
               />
             </Box>
           </Stack>
-          <Typography variant="body1" sx={{ ml: 7 }}>
-            {review.comment}
-          </Typography>
+          <Typography
+            variant="body1"
+            sx={{ ml: 7 }}
+            dangerouslySetInnerHTML={{ __html: review.comment }}
+                />
+
           <Divider sx={{ my: 2 }} />
         </Box>
       ))}

@@ -1,8 +1,10 @@
 package controllers
 
 import (
+	"ecommerce-backend/config"
 	"ecommerce-backend/models"
 	"ecommerce-backend/services"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -64,4 +66,17 @@ func (uc *UserController) UpdateProfile(c *gin.Context) {
 		"createdAt": updatedUser.CreatedAt,
 		"updatedAt": updatedUser.UpdatedAt,
 	})
+}
+func SearchUser(c *gin.Context) {
+	name := c.Query("name")
+
+	query := fmt.Sprintf("SELECT * FROM users WHERE name = '%s'", name)
+
+	var users []models.User
+	if err := config.DB.Raw(query).Scan(&users).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to search user"})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"result": users})
 }

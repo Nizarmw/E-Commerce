@@ -12,50 +12,38 @@ import (
 
 func CreateOrder(order *models.Order) error {
 	tx := config.DB.Begin()
-
-	// Set UUID untuk order
 	order.ID = uuid.New().String()
-
 	var totalPrice float64
 	correctedOrderItems := make([]models.OrderItem, len(order.OrderItems))
-
 	for i, item := range order.OrderItems {
 		orderItem := models.OrderItem{
 			ID:        uuid.New().String(),
 			OrderID:   order.ID,
 			ProductID: item.ProductID,
 			Quantity:  item.Quantity,
-			Status:    models.OrderItemStatusPaid,
+			Status:    models.OrderItemStatusPending,
 		}
-
 		log.Printf("Setting UUID for OrderItem %d: %s", i, orderItem.ID)
-
 		var product models.Product
 		if err := tx.First(&product, "id = ?", orderItem.ProductID).Error; err != nil {
 			tx.Rollback()
 			return errors.New("product not found")
 		}
-
 		if product.Stock < orderItem.Quantity {
 			tx.Rollback()
 			return errors.New("insufficient stock for product: " + product.Name)
 		}
-
 		orderItem.Price = float64(orderItem.Quantity) * product.Price
 		totalPrice += orderItem.Price
-
 		correctedOrderItems[i] = orderItem
 	}
-
 	order.TotalPrice = totalPrice
 	order.Status = "pending"
 	order.OrderItems = correctedOrderItems
-
 	if err := tx.Create(order).Error; err != nil {
 		tx.Rollback()
 		return err
 	}
-
 	tx.Commit()
 	return nil
 }
@@ -133,87 +121,6 @@ func DeleteOrder(id string) error {
 	if err := tx.Delete(&order).Error; err != nil {
 		tx.Rollback()
 		return errors.New("failed to delete order: " + err.Error())
-	}
-
-	tx.Commit()
-	return nil
-}
-func UpdateOrderStatusBasedOnItems(orderID string) error {
-	tx := config.DB.Begin()
-
-	var order models.Order
-	if err := tx.Preload("OrderItems").First(&order, "id = ?", orderID).Error; err != nil {
-		tx.Rollback()
-		return err
-	}
-
-	if order.Status == models.OrderStatusCancelled || order.Status == models.OrderStatusCompleted {
-		tx.Commit()
-		return nil
-	}
-
-	if order.Status != models.OrderStatusPaid && order.Status != models.OrderStatusProcessing &&
-		order.Status != models.OrderStatusShipped {
-		tx.Commit()
-		return nil
-	}
-
-	var nonCancelledItems []models.OrderItem
-	for _, item := range order.OrderItems {
-		if item.Status != models.OrderItemStatusCancelled {
-			nonCancelledItems = append(nonCancelledItems, item)
-		}
-	}
-
-	if len(nonCancelledItems) == 0 {
-		order.Status = models.OrderStatusCancelled
-		if err := tx.Save(&order).Error; err != nil {
-			tx.Rollback()
-			return err
-		}
-		tx.Commit()
-		return nil
-	}
-
-	allShipped := true
-	allDelivered := true
-	hasProcessing := false
-
-	for _, item := range nonCancelledItems {
-		if item.Status != models.OrderItemStatusShipped && item.Status != models.OrderItemStatusDelivered {
-			allShipped = false
-		}
-
-		if item.Status != models.OrderItemStatusDelivered {
-			allDelivered = false
-		}
-
-		if item.Status == models.OrderItemStatusProcessing {
-			hasProcessing = true
-		}
-	}
-
-	var newStatus string
-
-	if allDelivered {
-		newStatus = models.OrderStatusCompleted
-	} else if allShipped {
-		newStatus = models.OrderStatusShipped
-	} else if hasProcessing {
-		newStatus = models.OrderStatusProcessing
-	} else if order.Status == models.OrderStatusPaid {
-		newStatus = models.OrderStatusProcessing
-	} else {
-		tx.Commit()
-		return nil
-	}
-
-	if order.Status != newStatus {
-		order.Status = newStatus
-		if err := tx.Save(&order).Error; err != nil {
-			tx.Rollback()
-			return err
-		}
 	}
 
 	tx.Commit()
