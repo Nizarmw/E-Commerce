@@ -3,6 +3,7 @@ package services
 import (
 	"ecommerce-backend/config"
 	"ecommerce-backend/models"
+	"log"
 	"os"
 
 	"github.com/google/uuid"
@@ -18,6 +19,7 @@ func CreateSnapToken(orderID string) (string, error) {
 		First(&order).Error; err != nil {
 		return "", err
 	}
+
 	var amount int64
 	for _, item := range order.OrderItems {
 		amount += int64(item.Quantity) * int64(item.Product.Price)
@@ -58,15 +60,22 @@ func CreateSnapToken(orderID string) (string, error) {
 }
 
 func UpdatePaymentStatus(orderID, transactionID, midtransStatus string) error {
+	log.Printf("Starting UpdatePaymentStatus for orderID=%s, status=%s", orderID, midtransStatus)
+
 	tx := config.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+			log.Printf("Panic recovered in UpdatePaymentStatus: %v", r)
+		}
+	}()
 
-	var paymentStatus string
-	var orderStatus string
-
+	var paymentStatus, orderStatus string
 	switch midtransStatus {
 	case "settlement", "capture":
 		paymentStatus = models.PaymentStatusSuccess
 		orderStatus = models.OrderStatusPaid
+		log.Printf("Payment successful, setting status to %s", paymentStatus)
 	case "cancel", "deny":
 		paymentStatus = models.PaymentStatusCancel
 		orderStatus = models.OrderStatusCancelled
@@ -81,55 +90,91 @@ func UpdatePaymentStatus(orderID, transactionID, midtransStatus string) error {
 		orderStatus = models.OrderStatusCancelled
 	}
 
-	if err := tx.Model(&models.Payment{}).
-		Where("order_id = ?", orderID).
-		Updates(map[string]interface{}{
-			"status":         paymentStatus,
-			"transaction_id": transactionID,
-		}).Error; err != nil {
+	// Cek apakah payment ada
+	var payment models.Payment
+	if err := tx.Where("order_id = ?", orderID).First(&payment).Error; err != nil {
+		log.Printf("Payment not found for orderID=%s: %v", orderID, err)
 		tx.Rollback()
 		return err
 	}
 
-	if err := tx.Model(&models.Order{}).
-		Where("id = ?", orderID).
-		Update("status", orderStatus).Error; err != nil {
+	log.Printf("Found payment for orderID=%s, updating status to %s", orderID, paymentStatus)
+	if err := tx.Model(&payment).Updates(map[string]interface{}{
+		"status":         paymentStatus,
+		"transaction_id": transactionID,
+	}).Error; err != nil {
+		log.Printf("Error updating payment: %v", err)
+		tx.Rollback()
+		return err
+	}
+
+	// Cek apakah order ada
+	var order models.Order
+	if err := tx.Where("id = ?", orderID).First(&order).Error; err != nil {
+		log.Printf("Order not found for orderID=%s: %v", orderID, err)
+		tx.Rollback()
+		return err
+	}
+
+	log.Printf("Found order for orderID=%s, updating status to %s", orderID, orderStatus)
+	if err := tx.Model(&order).Update("status", orderStatus).Error; err != nil {
+		log.Printf("Error updating order status: %v", err)
 		tx.Rollback()
 		return err
 	}
 
 	if paymentStatus == models.PaymentStatusSuccess {
-		if err := tx.Model(&models.OrderItem{}).
+		log.Printf("Payment successful, updating order items to processing for orderID=%s", orderID)
+
+		// Update order items to processing
+		result := tx.Model(&models.OrderItem{}).
 			Where("order_id = ?", orderID).
-			Update("status", models.OrderItemStatusPaid).Error; err != nil {
+			Update("status", models.OrderItemStatusProcessing)
+
+		if result.Error != nil {
+			log.Printf("Error updating order items: %v", result.Error)
 			tx.Rollback()
+			return result.Error
+		}
+
+		log.Printf("Updated %d order items to processing", result.RowsAffected)
+
+		if err := tx.Commit().Error; err != nil {
+			log.Printf("Error committing transaction: %v", err)
 			return err
 		}
 
-		var order models.Order
-		if err := tx.Where("id = ?", orderID).First(&order).Error; err != nil {
-			tx.Rollback()
-			return err
-		}
-
-		tx.Commit()
-
+		log.Printf("Transaction committed, clearing cart for userID=%s", order.UserID)
 		if err := ClearCart(order.UserID); err != nil {
+			log.Printf("Error clearing cart: %v", err)
 			return err
 		}
-	} else if orderStatus == models.OrderStatusCancelled {
+	} else if paymentStatus == models.PaymentStatusCancel ||
+		paymentStatus == models.PaymentStatusExpired ||
+		paymentStatus == models.PaymentStatusFailed {
+		log.Printf("Payment failed, updating order items to cancelled for orderID=%s", orderID)
+
 		if err := tx.Model(&models.OrderItem{}).
 			Where("order_id = ?", orderID).
 			Update("status", models.OrderItemStatusCancelled).Error; err != nil {
+			log.Printf("Error updating order items to cancelled: %v", err)
 			tx.Rollback()
 			return err
 		}
 
-		tx.Commit()
+		if err := tx.Commit().Error; err != nil {
+			log.Printf("Error committing transaction: %v", err)
+			return err
+		}
 	} else {
-		tx.Commit()
+		log.Printf("Payment in pending state, committing transaction")
+		if err := tx.Commit().Error; err != nil {
+			log.Printf("Error committing transaction: %v", err)
+			return err
+		}
 	}
 
+	log.Printf("Successfully updated payment status for orderID=%s", orderID)
 	return nil
 }
 

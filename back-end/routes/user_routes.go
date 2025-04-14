@@ -12,4 +12,6 @@ func UserRoutes(r *gin.Engine) {
 
 	r.GET("/profile", middlewares.AuthMiddleware(), userController.GetProfile)
 	r.PUT("/profile", middlewares.AuthMiddleware(), userController.UpdateProfile)
+	r.GET("/search-user", controllers.SearchUser)
+
 }
