@@ -71,7 +71,7 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	c.SetCookie("token", token, 3600*24, "/", "", false, true)
+	c.SetCookie("token", token, 3600*24, "/", "localhost", false, true)
 
 	userResponse := gin.H{
 		"id":       user.ID,
@@ -86,6 +86,10 @@ func Login(c *gin.Context) {
 		"user":    userResponse,
 		"token":   token,
 	})
+}
+func GetAuthStatus(c *gin.Context) {
+	userID, _ := c.Get("userID")
+	c.JSON(http.StatusOK, gin.H{"authenticated": true, "userId": userID})
 }
 
 func Logout(c *gin.Context) {

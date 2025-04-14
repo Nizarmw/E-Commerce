@@ -1,28 +1,20 @@
-// utils/auth.js
-export const getToken = () => {
-    return localStorage.getItem('token');
-  };
-  
-  export const getUserInfo = () => {
-    const userStr = localStorage.getItem('user');
-    return userStr ? JSON.parse(userStr) : null;
-  };
-  
-  export const isAuthenticated = () => {
-    return !!getToken();
-  };
-  
-  export const refreshToken = async () => {
-    // Implement token refresh logic if needed
+export const isAuthenticated = async () => {
+  try {
+    // Cek status autentikasi dengan memanggil endpoint yang dilindungi
+    await api.get("/auth/status"); // Buat endpoint ini di backend jika belum ada
     return true;
-  };
-  
-  export const setAuthData = (userData, token) => {
-    localStorage.setItem('user', JSON.stringify(userData));
-    localStorage.setItem('token', token);
-  };
-  
-  export const clearAuthData = () => {
-    localStorage.removeItem('user');
-    localStorage.removeItem('token');
-  };
+  } catch (error) {
+    return false;
+  }
+};
+
+export const setAuthData = (userData) => {
+  // Hanya simpan data user, token dikelola oleh cookies
+  localStorage.setItem('user', JSON.stringify(userData));
+};
+
+export const clearAuthData = () => {
+  localStorage.removeItem('user');
+  // Hapus cookie dengan memanggil endpoint logout
+  return api.post('/auth/logout');
+};

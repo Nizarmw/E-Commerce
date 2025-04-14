@@ -20,9 +20,9 @@ func CreateSnapToken(orderID string) (string, error) {
 		return "", err
 	}
 
-	var amount int64
+	var amount float64
 	for _, item := range order.OrderItems {
-		amount += int64(item.Quantity) * int64(item.Product.Price)
+		amount += float64(item.Quantity) * float64(item.Product.Price)
 	}
 
 	midtransClient := midtrans.NewClient()
@@ -35,7 +35,7 @@ func CreateSnapToken(orderID string) (string, error) {
 	snapReq := &midtrans.SnapReq{
 		TransactionDetails: midtrans.TransactionDetails{
 			OrderID:  orderID,
-			GrossAmt: amount,
+			GrossAmt: int64(amount),
 		},
 	}
 
@@ -90,7 +90,6 @@ func UpdatePaymentStatus(orderID, transactionID, midtransStatus string) error {
 		orderStatus = models.OrderStatusCancelled
 	}
 
-	// Cek apakah payment ada
 	var payment models.Payment
 	if err := tx.Where("order_id = ?", orderID).First(&payment).Error; err != nil {
 		log.Printf("Payment not found for orderID=%s: %v", orderID, err)
@@ -108,7 +107,6 @@ func UpdatePaymentStatus(orderID, transactionID, midtransStatus string) error {
 		return err
 	}
 
-	// Cek apakah order ada
 	var order models.Order
 	if err := tx.Where("id = ?", orderID).First(&order).Error; err != nil {
 		log.Printf("Order not found for orderID=%s: %v", orderID, err)
@@ -126,7 +124,6 @@ func UpdatePaymentStatus(orderID, transactionID, midtransStatus string) error {
 	if paymentStatus == models.PaymentStatusSuccess {
 		log.Printf("Payment successful, updating order items to processing for orderID=%s", orderID)
 
-		// Update order items to processing
 		result := tx.Model(&models.OrderItem{}).
 			Where("order_id = ?", orderID).
 			Update("status", models.OrderItemStatusProcessing)

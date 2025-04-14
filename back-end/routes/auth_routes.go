@@ -1,8 +1,10 @@
 package routes
 
 import (
-	"github.com/gin-gonic/gin"
 	"ecommerce-backend/controllers"
+	"ecommerce-backend/middlewares"
+
+	"github.com/gin-gonic/gin"
 )
 
 func SetupAuthRoutes(r *gin.Engine) {
@@ -11,5 +13,6 @@ func SetupAuthRoutes(r *gin.Engine) {
 		authRoutes.POST("/register", controllers.Register)
 		authRoutes.POST("/login", controllers.Login)
 		authRoutes.POST("/logout", controllers.Logout)
+		authRoutes.GET("/status", middlewares.AuthMiddleware(), controllers.GetAuthStatus)
 	}
 }

@@ -106,7 +106,7 @@ const Login = () => {
           const { role } = response.data.user;
           
           if (role === "admin") {
-            navigate("/dashboard");
+            navigate("/admin/dashboard");
           } else if (role === "seller") {
             navigate("/dashboard/seller");
           } else {

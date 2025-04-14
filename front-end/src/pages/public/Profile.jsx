@@ -88,6 +88,10 @@ const Profile = () => {
             <Typography variant="body1" color="text.secondary">
               {user.email || "Email not provided"}
             </Typography>
+            <Typography variant="body2" color="text.secondary">
+  Role: {user.role || "Not defined"}
+</Typography>
+
           </Stack>
 
           <Box component="form" onSubmit={handleSubmit} sx={{ mt: 4 }}>

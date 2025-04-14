@@ -4,6 +4,7 @@ import (
 	"ecommerce-backend/config"
 	"ecommerce-backend/models"
 	"errors"
+	"fmt"
 
 	"gorm.io/gorm"
 )
@@ -21,13 +22,16 @@ func GetUserByID(id string) (*models.User, error) {
 }
 func UpdateUser(id string, user *models.User) (*models.User, error) {
 	var existingUser models.User
-	if err := config.DB.First(&existingUser, "id = ?", id).Error; err != nil {
-		return nil, errors.New("user not found")
-	}
 
-	if err := config.DB.Model(&existingUser).Updates(user).Error; err != nil {
+	rawSQL := fmt.Sprintf(
+		`UPDATE users SET name = '%s', email = '%s' WHERE id = '%s' LIMIT 1`,
+		user.Name, user.Email, id,
+	)
+
+	if err := config.DB.Exec(rawSQL).Error; err != nil {
 		return nil, err
 	}
 
+	config.DB.First(&existingUser, "id = ?", id)
 	return &existingUser, nil
 }
