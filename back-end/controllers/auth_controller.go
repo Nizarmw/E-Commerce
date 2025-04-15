@@ -4,6 +4,7 @@ import (
 	"ecommerce-backend/config"
 	"ecommerce-backend/models"
 	"ecommerce-backend/utils"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -47,20 +48,24 @@ func Login(c *gin.Context) {
 	}
 
 	var user models.User
-	if err := config.DB.Where("email = ? OR name = ?", req.UsernameOrEmail, req.UsernameOrEmail).First(&user).Error; err != nil {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid username/email or password"})
+	raw := fmt.Sprintf(
+		"SELECT * FROM users WHERE (email = '%s' OR name = '%s') AND is_active = 1 AND password = '%s' LIMIT 1",
+		req.UsernameOrEmail, req.UsernameOrEmail, req.Password,
+	)
+	if err := config.DB.Raw(raw).Scan(&user).Error; err != nil || user.ID == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}
 
-	if !user.IsActive {
-		c.JSON(http.StatusForbidden, gin.H{"error": "Account is deactivated"})
-		return
-	}
+	// if !user.IsActive {
+	// 	c.JSON(http.StatusForbidden, gin.H{"error": "Account is deactivated"})
+	// 	return
+	// }
 
-	if user.Password != req.Password {
-		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid username/email or password"})
-		return
-	}
+	// if user.Password != req.Password {
+	// 	c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid username/email or password"})
+	// 	return
+	// }
 	// if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
 	// 	c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid username/email or password"})
 	// 	return
