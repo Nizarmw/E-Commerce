@@ -1,5 +1,5 @@
 services:
-  backend:
+  frontend:
     build:
       context: .
       dockerfile: ./Dockerfile
@@ -8,3 +8,9 @@ services:
       - .env
     ports:
       - "3000:3000"
+    networks:
+      - ecommerce_net
+
+networks:
+  ecommerce_net:
+    external: true
