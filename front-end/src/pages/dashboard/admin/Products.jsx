@@ -91,7 +91,7 @@ const SellerProducts = () => {
 
   const fetchCategories = async () => {
     try {
-      const res = await api.get(`/categories`);
+      const res = await axios(`/categories`);
       setCategories(res.data);
     } catch (err) {
       console.error("Error fetching categories:", err);
