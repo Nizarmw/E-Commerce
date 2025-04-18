@@ -8,7 +8,7 @@ export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
  */
 export const getAllProducts = async () => {
   try {
-    const response = await axios.get(`${API_URL}/products/`);
+    const response = await axios.get(`${API_URL}/products`);
     return response.data;
   } catch (error) {
     console.error("Error mengambil produk:", error);
@@ -40,7 +40,7 @@ export const searchProducts = async ({
     if (maxPrice) params.append("max_price", maxPrice);
 
     const response = await axios.get(
-      `${API_URL}/products/search/?${params.toString()}`
+      `${API_URL}/products/search?${params.toString()}`
     );
     return response.data;
   } catch (error) {
@@ -72,7 +72,7 @@ export const getProductById = async (id) => {
 export const getProductsByCategory = async (category) => {
   try {
     const response = await axios.get(
-      `${API_URL}/products/?category=${category}`
+      `${API_URL}/products?category=${category}`
     );
     return response.data;
   } catch (error) {
@@ -88,7 +88,7 @@ export const getProductsByCategory = async (category) => {
 export const getSellerProducts = async () => {
   try {
     const token = localStorage.getItem("token");
-    const response = await axios.get(`${API_URL}/products/seller/`, {
+    const response = await axios.get(`${API_URL}/products/seller`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -108,7 +108,7 @@ export const getSellerProducts = async () => {
 export const createProduct = async (productData) => {
   try {
     const token = localStorage.getItem("token");
-    const response = await axios.post(`${API_URL}/products/`, productData, {
+    const response = await axios.post(`${API_URL}/products`, productData, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
