@@ -1,7 +1,8 @@
 services:
   backend:
     build:
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./Dockerfile
     container_name: ecommerce_backend
     restart: always
     env_file:
@@ -11,7 +12,7 @@ services:
     ports:
       - "8080:8080"
     depends_on:
-      - db 
+      - db
 
   db:
     image: mariadb:latest
@@ -29,7 +30,7 @@ services:
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
       - mysql_data:/var/lib/mysql
-      
+
 
 volumes:
   mysql_data:

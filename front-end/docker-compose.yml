@@ -1,7 +1,8 @@
 services:
   backend:
     build:
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: ./Dockerfile
     container_name: ecommerce_frontend
     env_file:
       - .env
