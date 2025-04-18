@@ -13,4 +13,5 @@ services:
 
 networks:
   ecommerce_net:
+    name: back-end_ecommerce_net
     external: true
