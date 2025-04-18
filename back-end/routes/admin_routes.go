@@ -1,4 +1,3 @@
-// routes/admin_routes.go
 package routes
 
 import (
