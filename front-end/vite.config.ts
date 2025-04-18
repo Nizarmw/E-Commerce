@@ -5,7 +5,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     host: 'localhost',
-    cors: false,
+    cors: true,
     hmr: {
       host: 'localhost'
     }
