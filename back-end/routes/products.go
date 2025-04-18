@@ -10,12 +10,12 @@ import (
 func SetupProductRoutes(r *gin.Engine) {
 	productRoutes := r.Group("/products")
 	{
-		productRoutes.GET("/", controllers.GetProducts)
+		productRoutes.GET("", controllers.GetProducts)
 		productRoutes.GET("/:id", controllers.GetProductByID)
 		productRoutes.GET("/search", controllers.SearchProducts)
 
 		productRoutes.Use(middlewares.AuthMiddleware())
-		productRoutes.POST("/", controllers.CreateProduct)
+		productRoutes.POST("", controllers.CreateProduct)
 		productRoutes.PUT("/:id", controllers.UpdateProduct)
 		productRoutes.DELETE("/:id", controllers.DeleteProduct)
 	}
