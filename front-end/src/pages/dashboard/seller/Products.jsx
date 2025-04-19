@@ -78,7 +78,7 @@ const SellerProducts = () => {
     const user = getUserInfo();
 
     try {
-      const res = await api.get("/products");
+      const res = await axios.get("/products");
       setProducts(res.data.filter((pr) => pr.seller_id === user.user_id));
     } catch (err) {
       setError("Failed to fetch products");
@@ -89,7 +89,7 @@ const SellerProducts = () => {
 
   const fetchCategories = async () => {
     try {
-      const res = await api.get(`/categories/`);
+      const res = await axios.get(`/categories`);
       setCategories(res.data);
     } catch (err) {
       console.error("Error fetching categories:", err);
