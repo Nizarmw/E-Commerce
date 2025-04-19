@@ -87,12 +87,7 @@ export const getProductsByCategory = async (category) => {
  */
 export const getSellerProducts = async () => {
   try {
-    const token = localStorage.getItem("token");
-    const response = await axios.get(`${API_URL}/products/seller`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const response = await api.get(`/products/seller`);
     return response.data;
   } catch (error) {
     console.error("Error mengambil produk seller:", error);

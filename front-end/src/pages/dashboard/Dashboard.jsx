@@ -60,7 +60,7 @@ const Dashboard = () => {
 
   const fetchUsers = async () => {
     try {
-      const res = await api.get("/api/admin/users ");
+      const res = await axios.get("/api/admin/users ");
 
       setUsers(res.data);
     } catch (error) {
@@ -86,7 +86,7 @@ const Dashboard = () => {
   const handleDeactivate = async (userId, currentActive) => {
     if (window.confirm("Are you sure you want to deactivate this user?")) {
       try {
-        const res = await api.put(`/api/admin/users/${userId}/active-status`, {
+        const res = await axios.put(`/api/admin/users/${userId}/active-status`, {
           is_active: `${!currentActive}`,
         });
 
@@ -119,7 +119,7 @@ const Dashboard = () => {
 
   const handleRoleChange = async (userId, role) => {
     try {
-      const res = await api.put(`/api/admin/users/${userId}/role`, {
+      const res = await axios.put(`/api/admin/users/${userId}/role`, {
         role,
       });
 
