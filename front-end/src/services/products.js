@@ -1,6 +1,6 @@
 import axios from "axios";
 
-export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080" || "http://10.34.100.141:8080";
+export const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080";
 
 /**
  * Mendapatkan semua produk
@@ -87,7 +87,7 @@ export const getProductsByCategory = async (category) => {
  */
 export const getSellerProducts = async () => {
   try {
-    const response = await api.get(`/products/seller`);
+    const response = await axios.get(`/products/seller`);
     return response.data;
   } catch (error) {
     console.error("Error mengambil produk seller:", error);

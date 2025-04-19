@@ -78,7 +78,7 @@ const SellerProducts = () => {
     const user = getUserInfo();
 
     try {
-      const res = await api.get("/products/");
+      const res = await api.get("/products");
       setProducts(res.data.filter((pr) => pr.seller_id === user.user_id));
     } catch (err) {
       setError("Failed to fetch products");
