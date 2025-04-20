@@ -38,6 +38,7 @@ import api from "../../../services/api";
 import { getUserInfo } from "../../../utils/auth";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { styled } from "@mui/system";
+import axios from "axios";
 
 const VisuallyHiddenInput = styled("input")({
   clip: "rect(0 0 0 0)",
