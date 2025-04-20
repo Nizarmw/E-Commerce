@@ -38,7 +38,6 @@ import api from "../../../services/api";
 import { getUserInfo } from "../../../utils/auth";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import { styled } from "@mui/system";
-import axios from "axios";
 
 const VisuallyHiddenInput = styled("input")({
   clip: "rect(0 0 0 0)",
@@ -79,7 +78,7 @@ const SellerProducts = () => {
     const user = getUserInfo();
 
     try {
-      const res = await axios.get("/products");
+      const res = await api.get("/products");
       setProducts(res.data.filter((pr) => pr.seller_id === user.user_id));
     } catch (err) {
       setError("Failed to fetch products");
@@ -90,7 +89,7 @@ const SellerProducts = () => {
 
   const fetchCategories = async () => {
     try {
-      const res = await axios.get(`/categories`);
+      const res = await api.get(`/categories/`);
       setCategories(res.data);
     } catch (err) {
       console.error("Error fetching categories:", err);
