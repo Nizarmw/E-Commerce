@@ -1,0 +1,2 @@
+2025/04/22 09:29:55 [error] 321#321: *1681 open() "/var/www/html/profile" failed (2: No such file or directory), client: 10.34.4.192, server: localhost-nginx-proxy-manager, request: "GET /profile HTTP/1.1", host: "10.34.100.141"
+2025/04/22 09:30:03 [error] 321#321: *1681 open() "/var/www/html/login" failed (2: No such file or directory), client: 10.34.4.192, server: localhost-nginx-proxy-manager, request: "GET /login HTTP/1.1", host: "10.34.100.141"

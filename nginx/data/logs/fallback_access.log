@@ -1,0 +1,4 @@
+[22/Apr/2025:09:21:46 +0000] 200 - GET http 10.34.100.141 "/" [Client 10.34.4.192] [Length 568] [Gzip 1.86] "Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0" "-"
+[22/Apr/2025:09:21:47 +0000] 400 - GET http 10.34.100.141 "/favicon.ico" [Client 127.0.0.1] [Length 230] [Gzip -] "-" "-"
+[22/Apr/2025:09:29:55 +0000] 404 - GET http 10.34.100.141 "/profile" [Client 10.34.4.192] [Length 122] [Gzip 1.35] "Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0" "-"
+[22/Apr/2025:09:30:03 +0000] 404 - GET http 10.34.100.141 "/login" [Client 10.34.4.192] [Length 122] [Gzip 1.35] "Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0" "-"
