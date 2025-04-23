@@ -55,7 +55,7 @@ func UpdateCartItem(c *gin.Context) {
 
 func DeleteCartItem(c *gin.Context) {
 	cartItemID := c.Param("id")
-	userID := c.Param("user_id") // atau dari JWT context kalau pakai auth
+	userID := c.Param("user_id")
 
 	if err := services.DeleteCartItem(userID, cartItemID); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
