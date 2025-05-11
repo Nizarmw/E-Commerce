@@ -1,8 +1,11 @@
 package controllers
 
 import (
+	"crypto/sha512"
 	"ecommerce-backend/services"
+	"encoding/hex"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 )
@@ -27,10 +30,28 @@ func CreatePayment(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"snap_token": snapToken})
 }
 
+func generateSignature(orderID, statusCode, grossAmount, serverKey string) string {
+	signature := orderID + statusCode + grossAmount + serverKey
+	hash := sha512.New()
+	hash.Write([]byte(signature))
+	return hex.EncodeToString(hash.Sum(nil))
+}
+
 func MidtransWebhook(c *gin.Context) {
 	var notif map[string]interface{}
 	if err := c.ShouldBindJSON(&notif); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	serverKey := os.Getenv("MIDTRANS_SERVER_KEY")
+	orderId := notif["order_id"].(string)
+	statusCode := notif["status_code"].(string)
+	grossAmount := notif["gross_amount"].(string)
+	expectedSignature := generateSignature(orderId, statusCode, grossAmount, serverKey)
+
+	if notif["signature_key"] != expectedSignature {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid signature"})
 		return
 	}
 
