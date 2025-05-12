@@ -1,0 +1,54 @@
+name: "CodeQL Advanced"
+
+on:
+  push:
+    branches: [ "main", "CodeQL" ]
+  pull_request:
+    branches: [ "main", "CodeQL" ]
+  schedule:
+    - cron: '16 23 * * 0'  # Analisis terjadwal setiap minggu
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ${{ (matrix.language == 'swift' && 'macos-latest') || 'ubuntu-latest' }}
+
+    permissions:
+      security-events: write
+      packages: read
+      actions: read
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: go
+            build-mode: autobuild
+          - language: javascript-typescript
+            build-mode: autobuild  # Diubah dari 'none' jadi 'autobuild'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Inisialisasi CodeQL
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+          queries: security-extended,security-and-quality  # Tambahan query pack
+
+      # Untuk bahasa dengan build-mode manual, bisa isi di sini (jika dibutuhkan nanti)
+      - if: matrix.build-mode == 'manual'
+        shell: bash
+        run: |
+          echo 'Tambahkan perintah build manual di sini jika perlu.'
+          exit 1
+
+      # Analisis dengan CodeQL
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
