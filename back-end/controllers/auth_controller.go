@@ -20,17 +20,16 @@ func Register(c *gin.Context) {
 
 	user.ID = uuid.New().String()
 
+	if err := config.DB.Create(&user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to register"})
+		return
+	}
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
 		return
 	}
 	user.Password = string(hashedPassword)
-
-	if err := config.DB.Create(&user).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to register"})
-		return
-	}
 	c.JSON(http.StatusCreated, gin.H{
 		"message":  "User registered successfully!",
 		"username": user.Name,
