@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"net/http"
 	"time"
 
 	"ecommerce-backend/config"
@@ -11,19 +10,7 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-	"golang.org/x/time/rate"
 )
-
-var limiter = rate.NewLimiter(1, 10)
-
-func rateLimiter(c *gin.Context) {
-	if !limiter.Allow() {
-		c.JSON(http.StatusTooManyRequests, gin.H{"error": "too many requests"})
-		c.Abort()
-		return
-	}
-	c.Next()
-}
 
 func main() {
 	godotenv.Load()
@@ -33,7 +20,6 @@ func main() {
 
 	r := gin.Default()
 
-	r.Use(rateLimiter)
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:3000", "http://172.19.0.2:3000", "http://10.34.100.141:3000", "http://10.34.100.141"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
