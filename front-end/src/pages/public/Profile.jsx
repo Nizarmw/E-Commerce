@@ -63,10 +63,6 @@ const Profile = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.name || !formData.email) {
-      alert("Please fill in all fields");
-      return;
-    }
     try {
       const res = await api.put("/profile", formData);
       setUser(res.data);
