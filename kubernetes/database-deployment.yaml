@@ -5,7 +5,7 @@ metadata:
   namespace: ecommerce
 data:
   MARIADB_DATABASE: "ecommerce"
-  MARIADB_USER: "ecommerce_user"
+  MARIADB_USER: "ecom_user"
 ---
 apiVersion: v1
 kind: Secret

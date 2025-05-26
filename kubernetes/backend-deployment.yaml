@@ -4,7 +4,7 @@ metadata:
   name: backend-config
   namespace: ecommerce
 data:
-  DB_HOST: "db"
+  DB_HOST: "ecommerce-database-service"
   DB_PORT: "3306"
   DB_NAME: "ecommerce"
   DB_USER: "ecom_user"
