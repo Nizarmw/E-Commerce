@@ -151,7 +151,58 @@ EOL
                         kubectl wait --for=condition=ready pod -l app=ecommerce-backend -n ecommerce --timeout=120s || true
                         
                         # Show pod status
+                        echo "📊 Pod status:"
                         kubectl get pods -n ecommerce
+                        
+                        # Check services
+                        echo "🔍 Service details:"
+                        kubectl get services -n ecommerce
+                        
+                        # Check backend service details
+                        echo "🔍 Backend service details:"
+                        kubectl describe service ecommerce-backend-service -n ecommerce
+                        
+                        # Check if backend service is accessible
+                        echo "🔌 Testing backend service connectivity..."
+                        curl -v http://localhost:30080/health || echo "⚠️ Cannot connect to backend service on localhost:30080"
+                        curl -v http://${REGISTRY%:*}:30080/health || echo "⚠️ Cannot connect to backend service on ${REGISTRY%:*}:30080"
+                        
+                        # Check pod logs
+                        echo "📜 Backend pod logs:"
+                        kubectl logs -l app=ecommerce-backend -n ecommerce --tail=50 || echo "⚠️ Cannot retrieve backend logs"
+                        
+                        # Check firewall status
+                        echo "🧱 Firewall status:"
+                        sudo ufw status || echo "No UFW firewall"
+                        sudo iptables -L | grep 30080 || echo "No explicit iptables rules for port 30080"
+                    '''
+                }
+            }
+        }
+        
+        stage('Verify Deployment') {
+            steps {
+                script {
+                    echo "✅ Verifying deployment..."
+                    sh '''
+                        echo "Waiting for service to stabilize..."
+                        sleep 15
+                        
+                        # Get NodePort information
+                        NODE_IP=$(hostname -I | awk '{print $1}')
+                        NODE_PORT=$(kubectl get service ecommerce-backend-service -n ecommerce -o jsonpath="{.spec.ports[0].nodePort}")
+                        
+                        echo "Backend API should be accessible at: http://${NODE_IP}:${NODE_PORT}"
+                        echo "Testing API endpoint..."
+                        curl -v http://${NODE_IP}:${NODE_PORT}/health || echo "⚠️ Backend API is not responding. Check pod logs and network configuration."
+                        
+                        # Check if port is actually listening
+                        echo "Checking if port ${NODE_PORT} is listening:"
+                        netstat -tulpn | grep ${NODE_PORT} || echo "⚠️ No process is listening on port ${NODE_PORT}"
+                        
+                        # Explicitly check if k3s is properly forwarding traffic to NodePort
+                        echo "Checking k3s service forwarding:"
+                        sudo iptables-save | grep ${NODE_PORT} || echo "⚠️ No iptables rules found for k3s NodePort ${NODE_PORT}"
                     '''
                 }
             }

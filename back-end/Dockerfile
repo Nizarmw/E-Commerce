@@ -17,4 +17,7 @@ COPY --from=builder /app/server /app/server
 # Create an empty .env file if it doesn't exist to avoid build failures
 RUN touch /.env
 
+# Eksplisit mengekspos port 8080 yang digunakan aplikasi
+EXPOSE 8080
+
 CMD ["/app/server"]
