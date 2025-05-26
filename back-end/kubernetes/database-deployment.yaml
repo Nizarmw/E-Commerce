@@ -1,0 +1,259 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: database-config
+  namespace: ecommerce
+data:
+  MARIADB_DATABASE: "ecommerce"
+  MARIADB_USER: "ecom_user"
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: database-secret
+  namespace: ecommerce
+type: Opaque
+data:
+  # Base64 encoded values sesuai dengan environment variables yang diberikan
+  MARIADB_PASSWORD: ZWNvbTEyMw==      
+  MARIADB_ROOT_PASSWORD: ZWNvbTEyMw== 
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ecommerce-database
+  namespace: ecommerce
+  labels:
+    app: ecommerce-database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ecommerce-database
+  template:
+    metadata:
+      labels:
+        app: ecommerce-database
+    spec:
+      containers:
+      - name: mariadb
+        image: mariadb:10.8
+        ports:
+        - containerPort: 3306
+        env:
+        - name: MARIADB_DATABASE
+          valueFrom:
+            configMapKeyRef:
+              name: database-config
+              key: MARIADB_DATABASE
+        - name: MARIADB_USER
+          valueFrom:
+            configMapKeyRef:
+              name: database-config
+              key: MARIADB_USER
+        - name: MARIADB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: database-secret
+              key: MARIADB_PASSWORD
+        - name: MARIADB_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: database-secret
+              key: MARIADB_ROOT_PASSWORD
+        # MariaDB optimization settings untuk environment development
+        args:
+          - --innodb-buffer-pool-size=128M
+          - --innodb-log-file-size=32M
+          - --innodb-log-buffer-size=8M
+          - --query-cache-size=32M
+          - --thread-cache-size=8
+          - --max-connections=100
+          - --table-open-cache=256
+          - --character-set-server=utf8mb4
+          - --collation-server=utf8mb4_unicode_ci
+        volumeMounts:
+        - name: mysql-data
+          mountPath: /var/lib/mysql
+        - name: init-sql
+          mountPath: /docker-entrypoint-initdb.d
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          exec:
+            command:
+            - mysqladmin
+            - ping
+            - -h
+            - localhost
+            - -u
+            - root
+            - -pecom123
+          initialDelaySeconds: 90
+          periodSeconds: 30
+          failureThreshold: 5
+          timeoutSeconds: 15
+        readinessProbe:
+          exec:
+            command:
+            - mysqladmin
+            - ping
+            - -h
+            - localhost
+            - -u
+            - root
+            - -pecom123
+          initialDelaySeconds: 30
+          periodSeconds: 15
+          failureThreshold: 3
+          timeoutSeconds: 10
+        securityContext:
+          runAsUser: 999
+          runAsGroup: 999
+          allowPrivilegeEscalation: false
+      volumes:
+      - name: mysql-data
+        persistentVolumeClaim:
+          claimName: mysql-pvc
+      - name: init-sql
+        configMap:
+          name: init-sql-config
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-pvc
+  namespace: ecommerce
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: init-sql-config
+  namespace: ecommerce
+data:
+  init.sql: |
+    /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+    /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+    /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+    /*!40101 SET NAMES utf8mb4 */;
+    /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+    /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+    /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+    /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+
+    -- Create tables for e-commerce application
+    CREATE TABLE IF NOT EXISTS `users` (
+      `id` varchar(36) NOT NULL PRIMARY KEY,
+      `name` varchar(255) NOT NULL,
+      `email` varchar(255) NOT NULL UNIQUE,
+      `password` text NOT NULL,
+      `role` enum('admin','seller','buyer') DEFAULT 'buyer',
+      `created_at` datetime(3) DEFAULT CURRENT_TIMESTAMP(3),
+      `updated_at` datetime(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+    CREATE TABLE IF NOT EXISTS `categories` (
+      `id` varchar(36) NOT NULL PRIMARY KEY,
+      `name` varchar(255) NOT NULL UNIQUE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+    CREATE TABLE IF NOT EXISTS `products` (
+      `id` varchar(36) NOT NULL PRIMARY KEY,
+      `name` varchar(255) NOT NULL,
+      `description` text,
+      `price` decimal(15,2) NOT NULL,
+      `stock` bigint(20) NOT NULL,
+      `image_url` text,
+      `seller_id` varchar(36) NOT NULL,
+      `category_id` varchar(36) NOT NULL,
+      `created_at` datetime(3) DEFAULT CURRENT_TIMESTAMP(3),
+      `updated_at` datetime(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+      FOREIGN KEY (`seller_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+      FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+    CREATE TABLE IF NOT EXISTS `orders` (
+      `id` varchar(36) NOT NULL PRIMARY KEY,
+      `user_id` varchar(36) NOT NULL,
+      `total_price` decimal(15,2) NOT NULL,
+      `status` enum('pending','paid','shipped','completed','cancelled') DEFAULT 'pending',
+      `created_at` datetime(3) DEFAULT CURRENT_TIMESTAMP(3),
+      `updated_at` datetime(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+      FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+    CREATE TABLE IF NOT EXISTS `order_items` (
+      `id` varchar(36) NOT NULL PRIMARY KEY,
+      `order_id` varchar(36) NOT NULL,
+      `product_id` varchar(36) NOT NULL,
+      `quantity` bigint(20) NOT NULL,
+      `price` decimal(15,2) NOT NULL,
+      FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE,
+      FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+    CREATE TABLE IF NOT EXISTS `cart_items` (
+      `id` varchar(36) NOT NULL PRIMARY KEY,
+      `user_id` varchar(36) NOT NULL,
+      `product_id` varchar(36) NOT NULL,
+      `quantity` bigint(20) NOT NULL,
+      `created_at` datetime(3) DEFAULT CURRENT_TIMESTAMP(3),
+      `updated_at` datetime(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+      FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+      FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+    CREATE TABLE IF NOT EXISTS `payments` (
+      `id` varchar(36) NOT NULL PRIMARY KEY,
+      `order_id` varchar(36) NOT NULL UNIQUE,
+      `amount` bigint(20) NOT NULL,
+      `snap_token` text NOT NULL,
+      `transaction_id` text,
+      `status` varchar(20) NOT NULL DEFAULT 'pending',
+      `created_at` datetime(3) DEFAULT CURRENT_TIMESTAMP(3),
+      `updated_at` datetime(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+      `deleted_at` datetime(3) DEFAULT NULL,
+      FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+    CREATE TABLE IF NOT EXISTS `reviews` (
+      `id` varchar(36) NOT NULL PRIMARY KEY,
+      `user_id` varchar(36) NOT NULL,
+      `product_id` varchar(36) NOT NULL,
+      `rating` int(11) NOT NULL CHECK (`rating` >= 1 AND `rating` <= 5),
+      `comment` text,
+      `created_at` datetime(3) DEFAULT CURRENT_TIMESTAMP(3),
+      FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+      FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+    -- Insert default data
+    INSERT IGNORE INTO `users` (`id`, `name`, `email`, `password`, `role`, `created_at`, `updated_at`) VALUES
+    ('96ec37f4-a608-41ee-b942-5439f0294308', 'Default Buyer', 'buyer@ecommerce.local', '$2a$10$iamP.a/CF7qYQF9uri0N.eukdxEQ1NJB6xjOj..Mfx9.04OrR667y', 'buyer', NOW(), NOW()),
+    ('admin-user-id-123456789012345678901234', 'Admin User', 'admin@ecommerce.local', '$2a$10$iamP.a/CF7qYQF9uri0N.eukdxEQ1NJB6xjOj..Mfx9.04OrR667y', 'admin', NOW(), NOW()),
+    ('seller-user-id-12345678901234567890123', 'Test Seller', 'seller@ecommerce.local', '$2a$10$iamP.a/CF7qYQF9uri0N.eukdxEQ1NJB6xjOj..Mfx9.04OrR667y', 'seller', NOW(), NOW());
+
+    INSERT IGNORE INTO `categories` (`id`, `name`) VALUES
+    ('cat-electronics-123456789012345678901234', 'Electronics'),
+    ('cat-clothing-1234567890123456789012345', 'Clothing'),
+    ('cat-books-12345678901234567890123456', 'Books'),
+    ('cat-home-123456789012345678901234567', 'Home & Garden');
+
+    /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+    /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+    /*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+    /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+    /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+    /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+    /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
