@@ -4,7 +4,6 @@ pipeline {
     environment {
         REGISTRY = "10.34.100.141:30500"
         BACKEND_IMAGE = "ecommerce-backend"
-        FRONTEND_IMAGE = "ecommerce-frontend"
         BUILD_NUMBER = "${env.BUILD_NUMBER}"
         KUBECONFIG = "/var/lib/jenkins/.kube/config"
     }
@@ -46,24 +45,6 @@ pipeline {
             }
         }
 
-        stage('Security Scan - Frontend') {
-            steps {
-                script {
-                    echo "🔍 Running security scan on React frontend..."
-                    sh '''
-                        cd front-end
-                        # Run npm audit with limited output
-                        npm audit --audit-level=moderate --json > npm-audit-report.json 2>/dev/null || echo "Audit completed"
-                        
-                        # Run ESLint security plugin (skip if fails to save resources)
-                        npm run lint 2>/dev/null || echo "Linting skipped to save resources"
-                        
-                        echo "Frontend security scan completed."
-                    '''
-                }
-            }
-        }
-
         stage('Build Backend') {
             steps {
                 echo "🔨 Building Go backend..."
@@ -84,29 +65,11 @@ pipeline {
             }
         }
 
-        stage('Build Frontend') {
-            steps {
-                echo "🔨 Building React frontend..."
-                sh '''
-                    cd front-end
-                    # Use npm ci for faster, reliable installs
-                    npm ci --only=production --no-audit --no-fund
-                    
-                    # Build with memory limit
-                    NODE_OPTIONS="--max_old_space_size=512" npm run build
-                    
-                    # Clean up node_modules to save space
-                    rm -rf node_modules
-                '''
-            }
-        }
-
         stage('Build Docker Images') {
             steps {
                 script {
-                    echo "🐳 Building Docker images sequentially to manage memory..."
+                    echo "🐳 Building Docker images..."
                     
-                    // Build backend first
                     sh '''
                         cd back-end
                         echo "Building backend image..."
@@ -115,17 +78,6 @@ pipeline {
                         
                         # Clean up build cache
                         docker system prune -f --filter "until=24h"
-                    '''
-                    
-                    // Then build frontend
-                    sh '''
-                        cd front-end
-                        echo "Building frontend image..."
-                        docker build -t ${REGISTRY}/${FRONTEND_IMAGE}:${BUILD_NUMBER} .
-                        docker tag ${REGISTRY}/${FRONTEND_IMAGE}:${BUILD_NUMBER} ${REGISTRY}/${FRONTEND_IMAGE}:latest
-                        
-                        # Clean up intermediate images
-                        docker image prune -f
                     '''
                 }
             }
@@ -141,15 +93,11 @@ pipeline {
                         docker push ${REGISTRY}/${BACKEND_IMAGE}:${BUILD_NUMBER}
                         docker push ${REGISTRY}/${BACKEND_IMAGE}:latest
                         
-                        echo "Pushing frontend images..."
-                        docker push ${REGISTRY}/${FRONTEND_IMAGE}:${BUILD_NUMBER}
-                        docker push ${REGISTRY}/${FRONTEND_IMAGE}:latest
-                        
                         docker logout ${REGISTRY}
                         
                         # Clean up local images after push to save space
                         docker rmi ${REGISTRY}/${BACKEND_IMAGE}:${BUILD_NUMBER} || true
-                        docker rmi ${REGISTRY}/${FRONTEND_IMAGE}:${BUILD_NUMBER} || true
+                        docker rmi ${REGISTRY}/${BACKEND_IMAGE}:latest || true
                     '''
                 }
             }
@@ -162,7 +110,6 @@ pipeline {
                     sh '''
                         # Update image tags in deployment files
                         sed -i "s|\\${BUILD_NUMBER}|${BUILD_NUMBER}|g" kubernetes/backend-deployment.yaml
-                        sed -i "s|\\${BUILD_NUMBER}|${BUILD_NUMBER}|g" kubernetes/frontend-deployment.yaml
                         
                         # Apply Kubernetes configurations in order
                         echo "Creating namespace..."
@@ -180,14 +127,9 @@ pipeline {
                         kubectl apply -f kubernetes/backend-deployment.yaml
                         kubectl apply -f kubernetes/backend-service.yaml
                         
-                        echo "Deploying frontend..."
-                        kubectl apply -f kubernetes/frontend-deployment.yaml
-                        kubectl apply -f kubernetes/frontend-service.yaml
-                        
                         # Wait for deployments with shorter timeout due to resource constraints
                         echo "Waiting for deployments to be ready..."
                         kubectl rollout status deployment/ecommerce-backend -n ecommerce --timeout=180s || echo "Backend deployment taking longer than expected"
-                        kubectl rollout status deployment/ecommerce-frontend -n ecommerce --timeout=180s || echo "Frontend deployment taking longer than expected"
                     '''
                 }
             }
@@ -222,7 +164,7 @@ pipeline {
         always {
             script {
                 // Archive security reports
-                archiveArtifacts artifacts: '**/gosec-report.json,**/npm-audit-report.json', allowEmptyArchive: true
+                archiveArtifacts artifacts: '**/security-report.json', allowEmptyArchive: true
                 
                 // Aggressive cleanup to manage disk space
                 sh '''
@@ -235,12 +177,7 @@ pipeline {
                     # Clean Go cache
                     go clean -cache -modcache -testcache 2>/dev/null || true
                     
-                    # Clean npm cache
-                    npm cache clean --force 2>/dev/null || true
-                    
                     # Remove old build artifacts
-                    find . -name "node_modules" -type d -exec rm -rf {} + 2>/dev/null || true
-                    find . -name "dist" -type d -exec rm -rf {} + 2>/dev/null || true
                     find . -name "build" -type d -exec rm -rf {} + 2>/dev/null || true
                     
                     echo "Cleanup completed"
@@ -252,7 +189,6 @@ pipeline {
             script {
                 sh '''
                     echo "🎉 Deployment successful!"
-                    echo "Frontend: http://10.34.100.141:30090"
                     echo "Backend API: http://10.34.100.141:30080"
                     echo "Health Check: http://10.34.100.141:30080/health"
                     
