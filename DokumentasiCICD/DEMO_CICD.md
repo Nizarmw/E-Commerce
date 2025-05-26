@@ -11,7 +11,7 @@ Demo ini menunjukkan implementasi complete CI/CD pipeline dengan security scanni
 ## 📋 **VPS Information**
 - **IP**: 10.34.100.141
 - **Username**: devsec5
-- **Password**: XYCqrifrp5
+- **Password**: redactedpassword
 
 ---
 
@@ -22,7 +22,7 @@ Demo ini menunjukkan implementasi complete CI/CD pipeline dengan security scanni
 ```bash
 # Connect to VPS
 ssh devsec5@10.34.100.141
-# Password: XYCqrifrp5
+# Password: redactedpassword
 ```
 
 ### **2. Upload Setup Script**
@@ -358,7 +358,7 @@ kubectl logs -f deployment/ecommerce-frontend
    ```bash
    # Pastikan credentials benar
    ssh devsec5@10.34.100.141
-   # Password: XYCqrifrp5
+   # Password: redactedpassword
    ```
 
 2. **Jenkins Not Accessible**:

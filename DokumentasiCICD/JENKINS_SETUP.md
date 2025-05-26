@@ -3,7 +3,7 @@
 ## Informasi VPS
 - **IP**: 10.34.100.141
 - **Username**: devsec5
-- **Password**: XYCqrifrp5
+- **Password**: redactedpassword
 - **Spesifikasi**: 2 CPU cores, 2GB RAM, 16GB disk
 - **Database**: MariaDB (bukan PostgreSQL)
 
@@ -16,7 +16,7 @@
 ```bash
 # Connect to VPS
 ssh devsec5@10.34.100.141
-# Password: XYCqrifrp5
+# Password: redactedpassword
 ```
 
 ### Step 2: Upload dan Run Setup Script
@@ -113,26 +113,7 @@ Jenkins sudah dikonfigurasi otomatis oleh `setup-vps.sh` dengan:
 
 ### Environment Variables Configuration
 
-**Backend (.env)**:
-```bash
-DB_USER=ecom_user
-DB_PASS=ecom123
-DB_HOST=db
-DB_PORT=3306
-DB_NAME=ecommerce
-JWT_SECRET=f9a4b3e2d5c8f7e1a0b6c3d4e8f9a2b7c6d0e5f1b4a8c9d7e2f6a3b0c8d4e9
-MIDTRANS_SERVER_KEY=SB-Mid-server-nEvTUg-zOhdLQaN0uy_t9JoQ
-MIDTRANS_CLIENT_KEY=SB-Mid-client-vZ1KhHbjaNBsy60c
-SUPABASE_URL=https://ssiayuddvhunioreofxl.supabase.co
-SUPABASE_TOKEN=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzaWF5dWRkdmh1bmlvcmVvZnhsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NDAxNDEyMywiZXhwIjoyMDU5NTkwMTIzfQ.jASXkzysve9iOHtkqMINVsvl7rP3N3osqdy1GMpPEoY
-SUPABASE_BUCKET=product-image
-```
-
-**Frontend (.env)**:
-```bash
-VITE_API_URL=http://localhost:8080
-VITE_MIDTRANS_CLIENT_KEY=SB-Mid-client-vZ1KhHbjaNBsy60c
-```
+[redacted]
 
 ### Kubernetes Deployments
 
@@ -350,7 +331,7 @@ Setelah deployment:
 1. **Connect to VPS**:
    ```bash
    ssh devsec5@10.34.100.141
-   # Password: XYCqrifrp5
+   # Password: redactedpassword
    ```
 
 2. **Upload dan run setup script**:

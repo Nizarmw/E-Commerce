@@ -26,7 +26,7 @@
 ```bash
 # Credentials sudah di-update di dokumentasi:
 ssh devsec5@10.34.100.141
-# Password: XYCqrifrp5
+# Password: redactedpassword
 ```
 
 ### **STEP 3: Upload Project**
@@ -89,7 +89,7 @@ sudo ./setup-vps.sh
 ### **Credentials VPS (Updated):**
 - **IP**: 10.34.100.141
 - **Username**: devsec5  
-- **Password**: XYCqrifrp5
+- **Password**: redactedpassword
 
 ### **Expected Results:**
 - **Frontend**: http://10.34.100.141:30081
