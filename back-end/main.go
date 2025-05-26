@@ -36,6 +36,51 @@ func main() {
 		})
 	})
 
+	// Root endpoint - API Information
+	r.GET("/", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"message": "Welcome to E-Commerce API",
+			"version": "1.0.0",
+			"status":  "running",
+			"endpoints": gin.H{
+				"health":     "/health",
+				"auth":       "/auth/*",
+				"products":   "/products/*",
+				"categories": "/categories/*",
+				"orders":     "/orders/*",
+				"cart":       "/cart/*",
+				"reviews":    "/reviews/*",
+				"users":      "/users/*",
+				"admin":      "/admin/*",
+				"seller":     "/seller/*",
+				"payment":    "/payment/*",
+			},
+			"documentation": "Available endpoints listed above",
+			"timestamp":     time.Now().Unix(),
+		})
+	})
+
+	// API info endpoint
+	r.GET("/api", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"api_name":    "E-Commerce Backend API",
+			"version":     "1.0.0",
+			"description": "Backend API for E-Commerce application",
+			"status":      "operational",
+			"endpoints": []gin.H{
+				{"path": "/health", "method": "GET", "description": "Health check endpoint"},
+				{"path": "/auth/register", "method": "POST", "description": "User registration"},
+				{"path": "/auth/login", "method": "POST", "description": "User login"},
+				{"path": "/products", "method": "GET", "description": "Get all products"},
+				{"path": "/products/{id}", "method": "GET", "description": "Get product by ID"},
+				{"path": "/categories", "method": "GET", "description": "Get all categories"},
+				{"path": "/cart/{user_id}", "method": "GET", "description": "Get user cart"},
+				{"path": "/orders", "method": "GET", "description": "Get user orders (auth required)"},
+			},
+			"timestamp": time.Now().Unix(),
+		})
+	})
+
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:3000", "http://172.19.0.2:3000", "http://10.34.100.141:3000", "http://10.34.100.141"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
