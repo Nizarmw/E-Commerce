@@ -14,6 +14,7 @@ FROM alpine:latest
 RUN apk update && apk add --no-cache ca-certificates && update-ca-certificates
 
 COPY --from=builder /app/server /app/server
-COPY .env .env
+# Create an empty .env file if it doesn't exist to avoid build failures
+RUN touch /.env
 
 CMD ["/app/server"]

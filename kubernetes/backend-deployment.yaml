@@ -4,11 +4,13 @@ metadata:
   name: backend-config
   namespace: ecommerce
 data:
-  DB_HOST: "ecommerce-database-service"
+  DB_HOST: "db"
   DB_PORT: "3306"
   DB_NAME: "ecommerce"
-  DB_USER: "ecommerce_user"
+  DB_USER: "ecom_user"
   GIN_MODE: "release"
+  SUPABASE_URL: "https://ssiayuddvhunioreofxl.supabase.co"
+  SUPABASE_BUCKET: "product-image"
 ---
 apiVersion: v1
 kind: Secret
@@ -20,6 +22,10 @@ data:
   # Base64 encoded values - change these in production
   DB_PASS: ZWNvbTEyMw==
   JWT_SECRET: ZjlhNGIzZTJkNWM4ZjdlMWEwYjZjM2Q0ZThmOWEyYjdjNmQwZTVmMWI0YThjOWQ3ZTJmNmEzYjBjOGQ0ZTk=
+  # Add these new secrets (values are placeholder base64 encoded strings)
+  MIDTRANS_SERVER_KEY: U0ItTWlkLXNlcnZlci1uRXZUVWctek9oZExRYU4wdXlfdDlKb1E=
+  MIDTRANS_CLIENT_KEY: U0ItTWlkLWNsaWVudC12WjFLaEhiamFOQnN5NjBj
+  SUPABASE_TOKEN: ZXlKaGJHY2lPaUpJVXpJMU5pSXNJblI1Y0NJNklrcFhWQ0o5LmV5SnBjM01pT2lKemRYQmhZbUZ6WlNJc0luSmxaaUk2SW5OemFXRjVkV1JrZG1oMWJtbHZjbVZ2Wm5oc0lpd2ljbTlzWlNJNkluTmxjblpwWTJWZmNtOXNaU0lzSW1saGRDSTZNVGMwTkRBeE5ERXlNeXdpWlhod0lqb3lNRFU1TlRrd01USXpmUS5qQVNYa3p5c3ZlOWlPSHRrcU1JTlZzdmw3clAzTjNvc3FkeTFHTXBQRW9Z
 
 ---
 apiVersion: apps/v1
@@ -82,6 +88,31 @@ spec:
               key: GIN_MODE
         - name: GOMAXPROCS
           value: "1"
+        - name: SUPABASE_URL
+          valueFrom:
+            configMapKeyRef:
+              name: backend-config
+              key: SUPABASE_URL
+        - name: SUPABASE_BUCKET
+          valueFrom:
+            configMapKeyRef:
+              name: backend-config
+              key: SUPABASE_BUCKET
+        - name: MIDTRANS_SERVER_KEY
+          valueFrom:
+            secretKeyRef:
+              name: backend-secret
+              key: MIDTRANS_SERVER_KEY
+        - name: MIDTRANS_CLIENT_KEY
+          valueFrom:
+            secretKeyRef:
+              name: backend-secret
+              key: MIDTRANS_CLIENT_KEY
+        - name: SUPABASE_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: backend-secret
+              key: SUPABASE_TOKEN
         resources:
           requests:
             memory: "64Mi"
