@@ -1,17 +1,21 @@
+version: '3.8'
+
 services:
   frontend:
     build:
       context: .
       dockerfile: ./Dockerfile
-    container_name: ecommerce_frontend
-    env_file:
-      - .env
+    container_name: ecommerce-frontend-dev
+    environment:
+      VITE_API_URL: http://localhost:8080
+      VITE_MIDTRANS_CLIENT_KEY: your-midtrans-client-key
+      VITE_MIDTRANS_ENVIRONMENT: sandbox
     ports:
-      - "3000:3000"
+      - "3000:80"
     networks:
-      - ecommerce_net
+      - ecommerce-network
+    restart: unless-stopped
 
 networks:
-  ecommerce_net:
-    name: back-end_ecommerce_net
+  ecommerce-network:
     external: true

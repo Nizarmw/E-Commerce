@@ -1,0 +1,76 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ecommerce-backend
+  labels:
+    app: ecommerce-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ecommerce-backend
+  template:
+    metadata:
+      labels:
+        app: ecommerce-backend
+    spec:
+      containers:
+      - name: backend
+        image: 10.34.100.141:5000/ecommerce-backend:${BUILD_NUMBER}
+        ports:
+        - containerPort: 8080
+        env:
+        - name: DB_USER
+          value: "ecom_user"
+        - name: DB_PASS
+          value: "ecom123"
+        - name: DB_HOST
+          value: "mariadb-service"
+        - name: DB_PORT
+          value: "3306"
+        - name: DB_NAME
+          value: "ecommerce"
+        - name: JWT_SECRET
+          value: "f9a4b3e2d5c8f7e1a0b6c3d4e8f9a2b7c6d0e5f1b4a8c9d7e2f6a3b0c8d4e9"
+        - name: MIDTRANS_SERVER_KEY
+          value: "SB-Mid-server-nEvTUg-zOhdLQaN0uy_t9JoQ"
+        - name: MIDTRANS_CLIENT_KEY
+          value: "SB-Mid-client-vZ1KhHbjaNBsy60c"
+        - name: SUPABASE_URL
+          value: "https://ssiayuddvhunioreofxl.supabase.co"
+        - name: SUPABASE_TOKEN
+          value: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNzaWF5dWRkdmh1bmlvcmVvZnhsIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc0NDAxNDEyMywiZXhwIjoyMDU5NTkwMTIzfQ.jASXkzysve9iOHtkqMINVsvl7rP3N3osqdy1GMpPEoY"
+        - name: SUPABASE_BUCKET
+          value: "product-image"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 5
+          periodSeconds: 5
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ecommerce-backend-service
+spec:
+  type: NodePort
+  selector:
+    app: ecommerce-backend
+  ports:
+    - port: 8080
+      targetPort: 8080
+      nodePort: 30080
