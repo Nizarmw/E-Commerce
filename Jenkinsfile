@@ -27,15 +27,15 @@ pipeline {
                         
                         # Check for hardcoded secrets/credentials
                         echo "Checking for hardcoded secrets..."
-                        grep -r -i "password\|secret\|token\|key\|credential" --include="*.go" . || echo "✅ No obvious hardcoded secrets found"
+                        grep -r -i "password\\|secret\\|token\\|key\\|credential" --include="*.go" . || echo "✅ No obvious hardcoded secrets found"
                         
                         # Check for SQL injection patterns
                         echo "Checking for potential SQL injection patterns..."
-                        grep -r "fmt\.Sprintf.*SELECT\|fmt\.Sprintf.*INSERT\|fmt\.Sprintf.*UPDATE\|fmt\.Sprintf.*DELETE" --include="*.go" . || echo "✅ No obvious SQL injection patterns found"
+                        grep -r "fmt\\.Sprintf.*SELECT\\|fmt\\.Sprintf.*INSERT\\|fmt\\.Sprintf.*UPDATE\\|fmt\\.Sprintf.*DELETE" --include="*.go" . || echo "✅ No obvious SQL injection patterns found"
                         
                         # Check for dangerous functions
                         echo "Checking for potentially dangerous functions..."
-                        grep -r "exec\.Command\|os\.Exec\|unsafe\." --include="*.go" . || echo "✅ No dangerous functions found"
+                        grep -r "exec\\.Command\\|os\\.Exec\\|unsafe\\." --include="*.go" . || echo "✅ No dangerous functions found"
                         
                         # Create basic security report
                         echo '{"status":"completed","type":"basic_security_check","findings":"manual_review_required"}' > security-report.json
