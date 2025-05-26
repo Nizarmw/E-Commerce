@@ -15,9 +15,11 @@ import (
 var DB *gorm.DB
 
 func InitDB() {
+	// Try to load .env file, but don't crash if it doesn't exist
+	// In Kubernetes, environment variables are provided via ConfigMap/Secret
 	err := godotenv.Load()
 	if err != nil {
-		log.Fatal("Error loading .env file")
+		log.Println("No .env file found in database config, using environment variables from system")
 	}
 
 	dbUser := os.Getenv("DB_USER")
@@ -25,6 +27,9 @@ func InitDB() {
 	dbHost := os.Getenv("DB_HOST")
 	dbPort := os.Getenv("DB_PORT")
 	dbName := os.Getenv("DB_NAME")
+
+	// Log environment variables for debugging (hide password)
+	log.Printf("Database config - User: %s, Host: %s, Port: %s, Name: %s", dbUser, dbHost, dbPort, dbName)
 
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local",
 		dbUser, dbPass, dbHost, dbPort, dbName)
@@ -35,7 +40,7 @@ func InitDB() {
 		if err == nil {
 			break
 		}
-		log.Printf("Retrying database connection (%d/10)...", i+1)
+		log.Printf("Retrying database connection (%d/10)... Error: %v", i+1, err)
 		time.Sleep(5 * time.Second)
 	}
 

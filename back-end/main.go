@@ -13,12 +13,28 @@ import (
 )
 
 func main() {
-	godotenv.Load()
+	// Try to load .env file, but don't crash if it doesn't exist
+	// In Kubernetes, environment variables are provided via ConfigMap/Secret
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("No .env file found, using environment variables from system")
+	} else {
+		log.Println("Loaded .env file successfully")
+	}
 
 	log.Println("Starting E-Commerce API...")
 	config.InitDB()
 
 	r := gin.Default()
+
+	// Health check endpoint for Kubernetes probes
+	r.GET("/health", func(c *gin.Context) {
+		c.JSON(200, gin.H{
+			"status":    "healthy",
+			"message":   "E-Commerce API is running",
+			"timestamp": time.Now().Unix(),
+		})
+	})
 
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:     []string{"http://localhost:3000", "http://172.19.0.2:3000", "http://10.34.100.141:3000", "http://10.34.100.141"},
