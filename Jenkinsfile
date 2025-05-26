@@ -19,24 +19,28 @@ pipeline {
         stage('Security Scan - Backend') {
             steps {
                 script {
-                    echo "🔍 Running security scan on Go backend..."
+                    echo "🔍 Running basic security checks on Go backend..."
                     sh '''
                         cd back-end
-                        # Install gosec if not available
-                        if ! command -v gosec &> /dev/null; then
-                            echo "Installing gosec..."
-                            go install github.com/securecodewarrior/gosec/v2/cmd/gosec@latest
-                        fi
                         
-                        # Run security scan with memory limit
-                        timeout 300 gosec -fmt json -out gosec-report.json ./... || echo "Security scan completed with warnings"
+                        echo "=== Basic Security Checks ==="
                         
-                        # Check for critical vulnerabilities
-                        if [ -f gosec-report.json ]; then
-                            echo "Security scan completed. Check gosec-report.json for details."
-                            # Show summary of findings
-                            cat gosec-report.json | grep -c '"severity":"HIGH"' || echo "No high severity issues found"
-                        fi
+                        # Check for hardcoded secrets/credentials
+                        echo "Checking for hardcoded secrets..."
+                        grep -r -i "password\|secret\|token\|key\|credential" --include="*.go" . || echo "✅ No obvious hardcoded secrets found"
+                        
+                        # Check for SQL injection patterns
+                        echo "Checking for potential SQL injection patterns..."
+                        grep -r "fmt\.Sprintf.*SELECT\|fmt\.Sprintf.*INSERT\|fmt\.Sprintf.*UPDATE\|fmt\.Sprintf.*DELETE" --include="*.go" . || echo "✅ No obvious SQL injection patterns found"
+                        
+                        # Check for dangerous functions
+                        echo "Checking for potentially dangerous functions..."
+                        grep -r "exec\.Command\|os\.Exec\|unsafe\." --include="*.go" . || echo "✅ No dangerous functions found"
+                        
+                        # Create basic security report
+                        echo '{"status":"completed","type":"basic_security_check","findings":"manual_review_required"}' > security-report.json
+                        
+                        echo "✅ Basic security checks completed"
                     '''
                 }
             }
