@@ -14,6 +14,7 @@ FROM alpine:latest
 RUN apk update && apk add --no-cache ca-certificates && update-ca-certificates
 
 COPY --from=builder /app/server /app/server
-COPY .env .env
+
+EXPOSE 8080
 
 CMD ["/app/server"]
