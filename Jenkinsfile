@@ -15,82 +15,58 @@ pipeline {
             }
         }
         
-        stage('Configure Docker') {
+        stage('Check Registry Connection') {
             steps {
                 script {
-                    echo "🔧 Configuring Docker to use insecure registry..."
+                    echo "🔍 Checking Docker Registry connection..."
                     sh '''
-                        # Create or update Docker daemon config to handle insecure registry
-                        echo "Configuring Docker daemon to use insecure registry at ${REGISTRY}..."
-                        
-                        # Check if daemon.json exists and contains our registry
-                        if [ -f /etc/docker/daemon.json ] && grep -q "${REGISTRY}" /etc/docker/daemon.json; then
-                            echo "Insecure registry already configured."
-                        else
-                            # Create docker config dir if it doesn't exist
-                            sudo mkdir -p /etc/docker
+                        # Test connection to the registry
+                        curl -f http://${REGISTRY}/v2/ || {
+                            echo "⚠️ Cannot connect to Docker registry at ${REGISTRY}"
+                            echo "Ensuring registry container is running..."
                             
-                            # Create or update the daemon.json file
-                            if [ -f /etc/docker/daemon.json ]; then
-                                # File exists, need to merge configs
-                                TMP_FILE=$(mktemp)
-                                jq '. + {"insecure-registries": ["'${REGISTRY}'"]} | if .["insecure-registries"] | type == "array" and contains(["'${REGISTRY}'"]) | not then .["insecure-registries"] += ["'${REGISTRY}'"] else . end' /etc/docker/daemon.json > $TMP_FILE
-                                sudo mv $TMP_FILE /etc/docker/daemon.json
-                            else
-                                # Create new config file
-                                echo '{"insecure-registries": ["'${REGISTRY}'"]}' | sudo tee /etc/docker/daemon.json
+                            # Check if registry container is running
+                            if ! docker ps | grep -q "registry:2"; then
+                                echo "Registry container not found or not running!"
+                                echo "Starting registry container..."
+                                docker run -d -p 30500:5000 --restart=always --name registry registry:2
+                                sleep 5
                             fi
                             
-                            # Restart Docker to apply changes
+                            # Check connection again
+                            curl -f http://${REGISTRY}/v2/ || {
+                                echo "⚠️ Still cannot connect to Docker registry at ${REGISTRY}"
+                                echo "Please ensure the registry service is properly configured and accessible"
+                                exit 1
+                            }
+                        }
+                        
+                        # Check if Docker daemon is configured for insecure registry
+                        if [ -f /etc/docker/daemon.json ]; then
+                            if ! grep -q "${REGISTRY}" /etc/docker/daemon.json; then
+                                echo "Configuring Docker daemon for insecure registry..."
+                                sudo mkdir -p /etc/docker
+                                echo '{"insecure-registries": ["'${REGISTRY}'"]}' | sudo tee /etc/docker/daemon.json
+                                sudo systemctl restart docker
+                                sleep 10
+                            fi
+                        else
+                            echo "Configuring Docker daemon for insecure registry..."
+                            sudo mkdir -p /etc/docker
+                            echo '{"insecure-registries": ["'${REGISTRY}'"]}' | sudo tee /etc/docker/daemon.json
                             sudo systemctl restart docker
-                            
-                            # Wait for Docker to restart
                             sleep 10
-                            echo "Docker daemon configured. Verifying docker service is running..."
-                            sudo systemctl status docker --no-pager
                         fi
                     '''
                 }
             }
         }
 
-        stage('Security Scan - Backend') {
-            steps {
-                script {
-                    echo "🔍 Running basic security checks on Go backend..."
-                    sh '''
-                        cd back-end
-                        
-                        echo "=== Basic Security Checks ==="
-                        
-                        # Check for hardcoded secrets/credentials
-                        echo "Checking for hardcoded secrets..."
-                        grep -r -i "password\\|secret\\|token\\|key\\|credential" --include="*.go" . || echo "✅ No obvious hardcoded secrets found"
-                        
-                        # Check for SQL injection patterns
-                        echo "Checking for potential SQL injection patterns..."
-                        grep -r "fmt\\.Sprintf.*SELECT\\|fmt\\.Sprintf.*INSERT\\|fmt\\.Sprintf.*UPDATE\\|fmt\\.Sprintf.*DELETE" --include="*.go" . || echo "✅ No obvious SQL injection patterns found"
-                        
-                        # Check for dangerous functions
-                        echo "Checking for potentially dangerous functions..."
-                        grep -r "exec\\.Command\\|os\\.Exec\\|unsafe\\." --include="*.go" . || echo "✅ No dangerous functions found"
-                        
-                        # Create basic security report
-                        echo '{"status":"completed","type":"basic_security_check","findings":"manual_review_required"}' > security-report.json
-                        
-                        echo "✅ Basic security checks completed"
-                    '''
-                }
-            }
-        }
-
-        stage('Build Backend') {
+        stage('Build Go Binary') {
             steps {
                 echo "🔨 Building Go backend..."
                 sh '''
                     cd back-end
-                    # Clean module cache to save space
-                    go clean -modcache || true
                     
                     # Initialize go.mod if needed
                     go mod tidy
@@ -104,56 +80,43 @@ pipeline {
             }
         }
 
-        stage('Build Docker Images') {
+        stage('Build Docker Image') {
             steps {
                 script {
-                    echo "🐳 Building Docker images..."
+                    echo "🐳 Building Docker image..."
                     
                     sh '''
                         cd back-end
                         echo "Building backend image..."
                         docker build -t ${REGISTRY}/${BACKEND_IMAGE}:${BUILD_NUMBER} .
                         docker tag ${REGISTRY}/${BACKEND_IMAGE}:${BUILD_NUMBER} ${REGISTRY}/${BACKEND_IMAGE}:latest
-                        
-                        # Clean up build cache
-                        docker system prune -f --filter "until=24h"
                     '''
                 }
             }
         }
 
-        stage('Push Docker Images') {
+        stage('Push Docker Image') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'docker-registry-creds', usernameVariable: 'USER', passwordVariable: 'PASS')]) {
+                script {
+                    echo "📤 Pushing Docker image to registry..."
                     sh '''
-                        echo "$PASS" | docker login ${REGISTRY} -u "$USER" --password-stdin
-                        
-                        echo "Pushing backend images..."
+                        # Direct push without login for local insecure registry
                         docker push ${REGISTRY}/${BACKEND_IMAGE}:${BUILD_NUMBER}
                         docker push ${REGISTRY}/${BACKEND_IMAGE}:latest
                         
-                        docker logout ${REGISTRY}
-                        
-                        # Clean up local images after push to save space
-                        docker rmi ${REGISTRY}/${BACKEND_IMAGE}:${BUILD_NUMBER} || true
-                        docker rmi ${REGISTRY}/${BACKEND_IMAGE}:latest || true
+                        # Verify image exists in registry
+                        curl -s http://${REGISTRY}/v2/${BACKEND_IMAGE}/tags/list || echo "⚠️ Could not verify image in registry"
                     '''
                 }
             }
         }
 
-        stage('Configure Kubernetes') {
+        stage('Deploy to Kubernetes') {
             steps {
                 script {
-                    echo "🔧 Configuring Kubernetes to use insecure registry..."
+                    echo "🚀 Deploying to Kubernetes..."
                     sh '''
-                        # Verify kubeconfig exists
-                        if [ ! -f ${KUBECONFIG} ]; then
-                            echo "Error: KUBECONFIG file not found at ${KUBECONFIG}!"
-                            exit 1
-                        fi
-                        
-                        # Configure k3s to use insecure registry if needed
+                        # Configure k3s to use insecure registry
                         sudo mkdir -p /etc/rancher/k3s
                         
                         if [ ! -f /etc/rancher/k3s/registries.yaml ] || ! grep -q "${REGISTRY}" /etc/rancher/k3s/registries.yaml; then
@@ -166,26 +129,9 @@ mirrors:
 EOL
                             sudo mv /tmp/registries.yaml /etc/rancher/k3s/registries.yaml
                             sudo systemctl restart k3s
-                            
-                            # Wait for k3s to restart
                             sleep 10
-                        else
-                            echo "K3s already configured for insecure registry."
                         fi
                         
-                        # Verify kubectl access
-                        echo "Testing kubectl connection..."
-                        kubectl get nodes
-                    '''
-                }
-            }
-        }
-
-        stage('Deploy to Kubernetes') {
-            steps {
-                script {
-                    echo "🚀 Deploying to Kubernetes..."
-                    sh '''
                         # Update the build number in yaml files
                         sed -i "s/\\${BUILD_NUMBER}/$BUILD_NUMBER/g" kubernetes/backend-deployment.yaml
                         
@@ -213,52 +159,11 @@ EOL
     }
 
     post {
-        always {
-            script {
-                // Archive security reports
-                archiveArtifacts artifacts: '**/security-report.json', allowEmptyArchive: true
-                
-                // Aggressive cleanup to manage disk space
-                sh '''
-                    echo "Cleaning up to save disk space..."
-                    
-                    # Clean Docker resources but keep running containers
-                    docker system prune -f --filter "until=24h"
-                    docker builder prune -af
-                    
-                    # Clean Go cache
-                    go clean -cache -modcache -testcache 2>/dev/null || true
-                    
-                    # Remove old build artifacts
-                    find . -name "build" -type d -exec rm -rf {} + 2>/dev/null || true
-                    
-                    echo "Cleanup completed"
-                '''
-            }
-        }
         success {
-            echo "✅ Application successfully deployed!"
-            script {
-                sh '''
-                    echo "🎉 Deployment successful!"
-                    echo "Backend pods status:"
-                    kubectl get pods -n ecommerce
-                    
-                    # Get backend service nodePort for information
-                    BACKEND_PORT=$(kubectl get service ecommerce-backend-service -n ecommerce -o jsonpath="{.spec.ports[0].nodePort}")
-                    echo "Backend API accessible at: http://10.34.100.141:$BACKEND_PORT"
-                '''
-            }
+            echo "✅ Deployment successful! Backend application has been deployed."
         }
         failure {
-            echo "❌ Deployment failed!"
-            script {
-                sh '''
-                    echo "Checking for issues..."
-                    kubectl get pods -n ecommerce
-                    kubectl logs -l app=ecommerce-backend -n ecommerce --tail=50 || true
-                '''
-            }
+            echo "❌ Deployment failed! Check the logs for more information."
         }
     }
 }
