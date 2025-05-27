@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ecommerce-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ecommerce-backend
+  template:
+    metadata:
+      labels:
+        app: ecommerce-backend
+    spec:
+      containers:
+      - name: ecommerce-backend
+        image: 10.34.100.141:30500/ecommerce-backend:${BUILD_NUMBER}
+        ports:
+        - containerPort: 8080
+        env:
+        - name: DB_HOST
+          value: db
+        - name: DB_NAME
+          value: ecommerce
+        - name: DB_USER
+          value: admin
+        - name: DB_PASS
+          value: admin123
