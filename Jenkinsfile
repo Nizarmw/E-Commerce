@@ -43,6 +43,31 @@ pipeline {
                         echo "✅ Registry connection successful"
                     '''
                 }
+            }        }
+        
+        stage('Network Diagnostics') {
+            steps {
+                echo "🌐 Running network diagnostics..."
+                sh '''
+                    echo "🔍 Testing DNS resolution..."
+                    nslookup google.com || echo "⚠️ Google DNS test failed"
+                    nslookup registry.npmjs.org || echo "⚠️ NPM registry DNS failed"
+                    nslookup proxy.golang.org || echo "⚠️ Go proxy DNS failed"
+                    nslookup dl-cdn.alpinelinux.org || echo "⚠️ Alpine DNS failed"
+                    
+                    echo "🌍 Testing connectivity..."
+                    curl -s --connect-timeout 5 --max-time 15 https://google.com && echo "✅ Google reachable" || echo "❌ Google unreachable"
+                    curl -s --connect-timeout 5 --max-time 15 https://registry.npmjs.org/ && echo "✅ NPM registry reachable" || echo "❌ NPM registry unreachable"
+                    curl -s --connect-timeout 5 --max-time 15 https://proxy.golang.org && echo "✅ Go proxy reachable" || echo "❌ Go proxy unreachable"
+                    curl -s --connect-timeout 5 --max-time 15 http://dl-cdn.alpinelinux.org/alpine/latest-stable/main/ && echo "✅ Alpine repo reachable" || echo "❌ Alpine repo unreachable"
+                    
+                    echo "🐳 Docker daemon info..."
+                    docker version
+                    
+                    echo "📊 Network configuration..."
+                    cat /etc/resolv.conf || echo "Cannot read resolv.conf"
+                    ip route show || echo "Cannot show routes"
+                '''
             }
         }
         
@@ -102,8 +127,31 @@ pipeline {
                             
                             sh '''
                                 cd back-end
+                                
+                                # Test network connectivity before building
+                                echo "🌐 Testing network connectivity..."
+                                curl -s --connect-timeout 10 --max-time 30 https://proxy.golang.org || echo "⚠️ Go proxy connection issues"
+                                curl -s --connect-timeout 10 --max-time 30 http://dl-cdn.alpinelinux.org/alpine/latest-stable/main/ || echo "⚠️ Alpine repository connection issues"
+                                
                                 echo "Building backend image with tag: ${BUILD_NUMBER}"
-                                docker build -t ${REGISTRY}/${BACKEND_IMAGE}:${BUILD_NUMBER} .
+                                
+                                # Build with retry mechanism
+                                for i in 1 2 3; do
+                                    echo "Attempt $i: Building Docker image..."
+                                    if docker build --network=host -t ${REGISTRY}/${BACKEND_IMAGE}:${BUILD_NUMBER} .; then
+                                        echo "✅ Backend build successful on attempt $i"
+                                        break
+                                    else
+                                        echo "❌ Backend build failed on attempt $i"
+                                        if [ $i -eq 3 ]; then
+                                            echo "💥 All backend build attempts failed"
+                                            exit 1
+                                        fi
+                                        echo "⏳ Waiting 30 seconds before retry..."
+                                        sleep 30
+                                    fi
+                                done
+                                
                                 docker tag ${REGISTRY}/${BACKEND_IMAGE}:${BUILD_NUMBER} ${REGISTRY}/${BACKEND_IMAGE}:latest
                                 
                                 # Show image size
@@ -119,8 +167,31 @@ pipeline {
                             
                             sh '''
                                 cd front-end
+                                
+                                # Test network connectivity before building
+                                echo "🌐 Testing network connectivity..."
+                                curl -s --connect-timeout 10 --max-time 30 https://registry.npmjs.org/ || echo "⚠️ NPM registry connection issues"
+                                curl -s --connect-timeout 10 --max-time 30 https://nginx.org/ || echo "⚠️ Nginx connection issues"
+                                
                                 echo "Building frontend image with tag: ${BUILD_NUMBER}"
-                                docker build -t ${REGISTRY}/${FRONTEND_IMAGE}:${BUILD_NUMBER} .
+                                
+                                # Build with retry mechanism  
+                                for i in 1 2 3; do
+                                    echo "Attempt $i: Building Docker image..."
+                                    if docker build --network=host -t ${REGISTRY}/${FRONTEND_IMAGE}:${BUILD_NUMBER} .; then
+                                        echo "✅ Frontend build successful on attempt $i"
+                                        break
+                                    else
+                                        echo "❌ Frontend build failed on attempt $i"
+                                        if [ $i -eq 3 ]; then
+                                            echo "💥 All frontend build attempts failed"
+                                            exit 1
+                                        fi
+                                        echo "⏳ Waiting 30 seconds before retry..."
+                                        sleep 30
+                                    fi
+                                done
+                                
                                 docker tag ${REGISTRY}/${FRONTEND_IMAGE}:${BUILD_NUMBER} ${REGISTRY}/${FRONTEND_IMAGE}:latest
                                 
                                 # Show image size

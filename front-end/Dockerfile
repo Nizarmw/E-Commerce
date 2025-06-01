@@ -3,11 +3,33 @@ FROM node:23.11-alpine AS builder
 
 WORKDIR /app
 
+# Configure Alpine repositories and npm for better reliability
+RUN echo "http://dl-cdn.alpinelinux.org/alpine/latest-stable/main" > /etc/apk/repositories && \
+    echo "http://dl-cdn.alpinelinux.org/alpine/latest-stable/community" >> /etc/apk/repositories && \
+    echo "http://mirrors.edge.kernel.org/alpine/latest-stable/main" >> /etc/apk/repositories && \
+    echo "http://mirrors.edge.kernel.org/alpine/latest-stable/community" >> /etc/apk/repositories
+
+# Configure npm for better reliability
+RUN npm config set registry https://registry.npmjs.org/ && \
+    npm config set fetch-retry-mintimeout 20000 && \
+    npm config set fetch-retry-maxtimeout 120000 && \
+    npm config set fetch-retries 5 && \
+    npm config set fetch-timeout 300000 && \
+    npm config set maxsockets 10
+
 # Copy package files
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install dependencies with retry logic
+RUN for i in 1 2 3 4 5; do \
+    echo "Attempt $i: Installing npm packages..." && \
+    npm ci --only=production --timeout=300000 && break || \
+    (echo "Retry $i: Failed to install npm packages, cleaning cache and retrying in 20s..." && \
+     npm cache clean --force && rm -rf node_modules && sleep 20); \
+    done
+
+# Verify dependencies installed
+RUN npm list --depth=0
 
 # Copy source code
 COPY . .
@@ -17,6 +39,9 @@ COPY .env.production .env
 
 # Build the application
 RUN npm run build
+
+# Verify build output
+RUN ls -la dist/
 
 # Production stage with nginx
 FROM nginx:alpine AS production
