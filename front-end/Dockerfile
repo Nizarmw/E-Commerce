@@ -17,7 +17,7 @@ RUN npm config set registry https://registry.npmjs.org/ && \
     npm config set fetch-timeout 300000 && \
     npm config set maxsockets 10
 
-# Copy package files
+# Copy package files first for better caching
 COPY package*.json ./
 
 # Install dependencies with retry logic
@@ -31,7 +31,7 @@ RUN for i in 1 2 3 4 5; do \
 # Verify dependencies installed (but don't fail if some devDependencies are missing)
 RUN npm list --depth=0 || true
 
-# Copy source code
+# Copy source code (excluding node_modules via .dockerignore)
 COPY . .
 
 # Copy production environment
