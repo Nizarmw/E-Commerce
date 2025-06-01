@@ -80,11 +80,18 @@ func main() {
 			"timestamp": time.Now().Unix(),
 		})
 	})
-
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"http://localhost:3000", "http://172.19.0.2:3000", "http://10.34.100.141:3000", "http://10.34.100.141"},
+		AllowOrigins:     []string{
+			"http://localhost:3000", 
+			"http://172.19.0.2:3000", 
+			"http://10.34.100.141:3000", 
+			"http://10.34.100.141:30090",  // Frontend NodePort
+			"http://10.34.100.141:30080",  // Backend NodePort  
+			"http://10.34.100.141",
+			"*", // Allow all origins for now (can be restricted later)
+		},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Requested-With"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))

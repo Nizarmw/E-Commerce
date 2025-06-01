@@ -67,12 +67,16 @@ server {
         expires 1y;
         add_header Cache-Control "public, immutable";
         add_header Access-Control-Allow-Origin "*";
-    }
-
-    # Security headers
+    }    # Security headers
     add_header X-Frame-Options "SAMEORIGIN" always;
     add_header X-Content-Type-Options "nosniff" always;
     add_header X-XSS-Protection "1; mode=block" always;
+    
+    # CORS headers for API calls
+    add_header Access-Control-Allow-Origin "*" always;
+    add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS" always;
+    add_header Access-Control-Allow-Headers "Origin, Content-Type, Accept, Authorization, X-Requested-With" always;
+    add_header Access-Control-Allow-Credentials "true" always;
 
     # Gzip compression
     gzip on;
