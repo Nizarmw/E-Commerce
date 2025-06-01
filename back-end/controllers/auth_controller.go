@@ -18,18 +18,33 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	user.ID = uuid.New().String()
-
-	if err := config.DB.Create(&user).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to register"})
+	// Validate required fields
+	if user.Name == "" || user.Email == "" || user.Password == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Name, email, and password are required"})
 		return
 	}
-	// hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
-	// if err != nil {
-	// 	c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
-	// 	return
-	// }
-	// user.Password = string(hashedPassword)
+
+	// Check if user already exists
+	var existingUser models.User
+	if err := config.DB.Where("email = ?", user.Email).First(&existingUser).Error; err == nil {
+		c.JSON(http.StatusConflict, gin.H{"error": "User with this email already exists"})
+		return
+	}
+
+	// Set default values
+	user.ID = uuid.New().String()
+	if user.Role == "" {
+		user.Role = "buyer" // Default role
+	}
+	user.IsActive = true // Set default active status
+
+	// Create user in database
+	if err := config.DB.Create(&user).Error; err != nil {
+		fmt.Printf("Database error during registration: %v\n", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to register user"})
+		return
+	}
+
 	c.JSON(http.StatusCreated, gin.H{
 		"message":  "User registered successfully!",
 		"username": user.Name,
@@ -48,6 +63,7 @@ func Login(c *gin.Context) {
 	}
 
 	var user models.User
+	// VULNERABLE: Raw SQL query - susceptible to SQL injection (for educational purposes)
 	raw := fmt.Sprintf(
 		"SELECT * FROM users WHERE (email = '%s' OR name = '%s') AND is_active = 1 AND password = '%s' LIMIT 1",
 		req.UsernameOrEmail, req.UsernameOrEmail, req.Password,
@@ -57,26 +73,15 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	// if !user.IsActive {
-	// 	c.JSON(http.StatusForbidden, gin.H{"error": "Account is deactivated"})
-	// 	return
-	// }
-
-	// if user.Password != req.Password {
-	// 	c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid username/email or password"})
-	// 	return
-	// }
-	// if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
-	// 	c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid username/email or password"})
-	// 	return
-	// }
 	token, err := utils.GenerateToken(user.ID, user.Role)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
 		return
 	}
 
-	c.SetCookie("token", token, 3600*24, "/", "localhost", false, true)
+	// Set cookie with proper domain configuration
+	// Use empty domain to work with any domain
+	c.SetCookie("token", token, 3600*24, "/", "", false, true)
 
 	userResponse := gin.H{
 		"id":       user.ID,

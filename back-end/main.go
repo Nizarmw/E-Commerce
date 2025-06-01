@@ -77,21 +77,20 @@ func main() {
 				{"path": "/cart/{user_id}", "method": "GET", "description": "Get user cart"},
 				{"path": "/orders", "method": "GET", "description": "Get user orders (auth required)"},
 			},
-			"timestamp": time.Now().Unix(),
-		})
+			"timestamp": time.Now().Unix(),		})
 	})
-	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{
+	
+	r.Use(cors.New(cors.Config{		AllowOrigins:     []string{
 			"http://localhost:3000", 
 			"http://172.19.0.2:3000", 
 			"http://10.34.100.141:3000", 
 			"http://10.34.100.141:30090",  // Frontend NodePort
 			"http://10.34.100.141:30080",  // Backend NodePort  
 			"http://10.34.100.141",
-			"*", // Allow all origins for now (can be restricted later)
+			// Removed wildcard "*" to fix credentials issue
 		},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Requested-With"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization", "X-Requested-With", "Content-Length"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
