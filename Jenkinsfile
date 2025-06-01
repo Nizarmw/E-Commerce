@@ -44,7 +44,9 @@ pipeline {
                     '''
                 }
             }
-        }        stage('Build Go Binary') {
+        }
+        
+        stage('Build Go Binary') {
             steps {
                 echo "🔨 Building Go backend..."
                 sh '''
@@ -64,7 +66,9 @@ pipeline {
                     file server
                 '''
             }
-        }        stage('Build Frontend') {
+        }
+
+        stage('Build Frontend') {
             steps {
                 echo "🎨 Building Frontend..."
                 sh '''
@@ -87,7 +91,9 @@ pipeline {
                     ls -la dist/
                 '''
             }
-        }stage('Build Docker Images') {
+        }
+
+        stage('Build Docker Images') {
             parallel {
                 stage('Build Backend Image') {
                     steps {
@@ -124,7 +130,9 @@ pipeline {
                     }
                 }
             }
-        }        stage('Push Docker Images') {
+        }
+
+        stage('Push Docker Images') {
             parallel {
                 stage('Push Backend Image') {
                     steps {
@@ -168,9 +176,9 @@ pipeline {
                     sh '''
                         cd back-end
                         
-                        # Create namespace if it doesn't exist
-                        kubectl create namespace ecommerce --dry-run=client -o yaml | kubectl apply -f -
-                          # Update image tag in deployment files
+                        # Create namespace if it doesn't exist                        kubectl create namespace ecommerce --dry-run=client -o yaml | kubectl apply -f -
+                        
+                        # Update image tag in deployment files
                         sed -i "s|image: 10.34.100.141:30500/ecommerce-backend:.*|image: 10.34.100.141:30500/ecommerce-backend:${BUILD_NUMBER}|g" kubernetes/backend-deployment.yaml
                         sed -i "s|image: 10.34.100.141:30500/ecommerce-frontend:.*|image: 10.34.100.141:30500/ecommerce-frontend:${BUILD_NUMBER}|g" kubernetes/frontend-deployment.yaml
                         
@@ -186,9 +194,9 @@ pipeline {
                         kubectl wait --for=condition=ready pod -l app=ecommerce-database -n ecommerce --timeout=180s || {
                             echo "⚠️ Database pod not ready, checking status..."
                             kubectl get pods -n ecommerce
-                            kubectl logs -l app=ecommerce-database -n ecommerce --tail=20 || true
-                        }
-                          echo "🔧 Deploying backend..."
+                            kubectl logs -l app=ecommerce-database -n ecommerce --tail=20 || true                        }
+                        
+                        echo "🔧 Deploying backend..."
                         kubectl apply -f kubernetes/backend-deployment.yaml
                         kubectl apply -f kubernetes/backend-service.yaml
                         
@@ -223,16 +231,16 @@ pipeline {
                 script {
                     echo "✅ Verifying deployment..."
                     sh '''
-                        echo "⏳ Waiting for services to stabilize..."
-                        sleep 20
-                          # Get service details
+                        echo "⏳ Waiting for services to stabilize..."                        sleep 20
+                        
+                        # Get service details
                         NODE_IP=$(hostname -I | awk '{print $1}')
                         BACKEND_PORT=$(kubectl get service ecommerce-backend-service -n ecommerce -o jsonpath="{.spec.ports[0].nodePort}" 2>/dev/null || echo "30080")
                         FRONTEND_PORT=$(kubectl get service ecommerce-frontend-service -n ecommerce -o jsonpath="{.spec.ports[0].nodePort}" 2>/dev/null || echo "30090")
                         
-                        echo "🌐 Backend API should be accessible at: http://${NODE_IP}:${BACKEND_PORT}"
-                        echo "🌐 Frontend Web should be accessible at: http://${NODE_IP}:${FRONTEND_PORT}"
-                          # Test API endpoint with retries
+                        echo "🌐 Backend API should be accessible at: http://${NODE_IP}:${BACKEND_PORT}"                        echo "🌐 Frontend Web should be accessible at: http://${NODE_IP}:${FRONTEND_PORT}"
+                        
+                        # Test API endpoint with retries
                         echo "🔍 Testing Backend API endpoint..."
                         for i in {1..5}; do
                             if curl -f -s --max-time 10 http://${NODE_IP}:${BACKEND_PORT}/health; then
@@ -257,9 +265,9 @@ pipeline {
                         done
                         
                         # Additional diagnostics
-                        echo "🔍 Service endpoints:"
-                        kubectl get endpoints -n ecommerce
-                          echo "🔍 Backend Pod logs (last 10 lines):"
+                        echo "🔍 Service endpoints:"                        kubectl get endpoints -n ecommerce
+                        
+                        echo "🔍 Backend Pod logs (last 10 lines):"
                         kubectl logs -l app=ecommerce-backend -n ecommerce --tail=10 || echo "No backend logs available"
                         
                         echo "🔍 Frontend Pod logs (last 10 lines):"
@@ -272,10 +280,11 @@ pipeline {
                         echo "🔍 Checking if frontend port ${FRONTEND_PORT} is accessible:"
                         netstat -tulpn | grep ":${FRONTEND_PORT}" || echo "Frontend port ${FRONTEND_PORT} not found in netstat"
                     '''
-                }
-            }
+                }            }
         }
-    }    post {
+    }
+
+    post {
         always {
             script {
                 echo "🧹 Cleaning up..."
