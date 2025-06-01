@@ -1,5 +1,7 @@
 pipeline {
-    agent any    environment {
+    agent any
+
+    environment {
         REGISTRY = "10.34.100.141:30500"
         BACKEND_IMAGE = "ecommerce-backend"
         FRONTEND_IMAGE = "ecommerce-frontend"
@@ -273,12 +275,11 @@ pipeline {
                 }
             }
         }
-    }
-
-    post {
+    }    post {
         always {
             script {
-                echo "🧹 Cleaning up..."                sh '''
+                echo "🧹 Cleaning up..."
+                sh '''
                     # Clean up old Docker images (keep last 3 builds)
                     docker images ${REGISTRY}/${BACKEND_IMAGE} --format "table {{.Tag}}" | grep -E "^[0-9]+$" | sort -nr | tail -n +4 | xargs -r -I {} docker rmi ${REGISTRY}/${BACKEND_IMAGE}:{} || true
                     docker images ${REGISTRY}/${FRONTEND_IMAGE} --format "table {{.Tag}}" | grep -E "^[0-9]+$" | sort -nr | tail -n +4 | xargs -r -I {} docker rmi ${REGISTRY}/${FRONTEND_IMAGE}:{} || true
@@ -288,7 +289,8 @@ pipeline {
                     kubectl get all -n ecommerce || true
                 '''
             }
-        }        success {
+        }
+        success {
             echo "✅ Full stack deployment successful! 🎉"
             script {
                 sh '''
@@ -300,7 +302,8 @@ pipeline {
                     echo "📝 Build #${BUILD_NUMBER} deployed successfully"
                 '''
             }
-        }        failure {
+        }
+        failure {
             echo "❌ Full stack deployment failed! 😞"
             script {
                 sh '''
