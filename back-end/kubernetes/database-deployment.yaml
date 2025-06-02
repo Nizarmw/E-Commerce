@@ -14,7 +14,8 @@ metadata:
   namespace: ecommerce
 type: Opaque
 data:
-  # Base64 encoded values sesuai dengan environment variables yang diberikan
+  # Base64 encoded values consistent with Docker Compose .env file
+  # ecom123 in base64
   MARIADB_PASSWORD: ZWNvbTEyMw==      
   MARIADB_ROOT_PASSWORD: ZWNvbTEyMw== 
 ---
@@ -37,7 +38,7 @@ spec:
     spec:
       containers:
       - name: mariadb
-        image: mariadb:10.8
+        image: mariadb:latest
         ports:
         - containerPort: 3306
         env:
@@ -143,117 +144,149 @@ metadata:
   namespace: ecommerce
 data:
   init.sql: |
-    /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-    /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-    /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-    /*!40101 SET NAMES utf8mb4 */;
-    /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
-    /*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-    /*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-    /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+    -- Disable foreign key checks temporarily to drop tables if needed
+    SET FOREIGN_KEY_CHECKS = 0;
 
-    -- Create tables for e-commerce application
-    CREATE TABLE IF NOT EXISTS `users` (
-      `id` varchar(36) NOT NULL PRIMARY KEY,
-      `name` varchar(255) NOT NULL,
-      `email` varchar(255) NOT NULL UNIQUE,
-      `password` text NOT NULL,
-      `role` enum('admin','seller','buyer') DEFAULT 'buyer',
-      `created_at` datetime(3) DEFAULT CURRENT_TIMESTAMP(3),
-      `updated_at` datetime(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3)
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    -- Drop existing tables if needed
+    DROP TABLE IF EXISTS reviews, payments, order_items, orders, cart_items, products, categories, users;
 
-    CREATE TABLE IF NOT EXISTS `categories` (
-      `id` varchar(36) NOT NULL PRIMARY KEY,
-      `name` varchar(255) NOT NULL UNIQUE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    -- Re-enable foreign key checks
+    SET FOREIGN_KEY_CHECKS = 1;
 
-    CREATE TABLE IF NOT EXISTS `products` (
-      `id` varchar(36) NOT NULL PRIMARY KEY,
-      `name` varchar(255) NOT NULL,
-      `description` text,
-      `price` decimal(15,2) NOT NULL,
-      `stock` bigint(20) NOT NULL,
-      `image_url` text,
-      `seller_id` varchar(36) NOT NULL,
-      `category_id` varchar(36) NOT NULL,
-      `created_at` datetime(3) DEFAULT CURRENT_TIMESTAMP(3),
-      `updated_at` datetime(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
-      FOREIGN KEY (`seller_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-      FOREIGN KEY (`category_id`) REFERENCES `categories` (`id`) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    -- Create 'users' table
+    CREATE TABLE users (
+        id CHAR(36) PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        password VARCHAR(255) NOT NULL,
+        role ENUM('admin', 'seller', 'buyer') DEFAULT 'buyer',
+        is_active BOOLEAN DEFAULT 1,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    );
 
-    CREATE TABLE IF NOT EXISTS `orders` (
-      `id` varchar(36) NOT NULL PRIMARY KEY,
-      `user_id` varchar(36) NOT NULL,
-      `total_price` decimal(15,2) NOT NULL,
-      `status` enum('pending','paid','shipped','completed','cancelled') DEFAULT 'pending',
-      `created_at` datetime(3) DEFAULT CURRENT_TIMESTAMP(3),
-      `updated_at` datetime(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
-      FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    -- Create 'categories' table
+    CREATE TABLE categories (
+        id CHAR(36) PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    );
 
-    CREATE TABLE IF NOT EXISTS `order_items` (
-      `id` varchar(36) NOT NULL PRIMARY KEY,
-      `order_id` varchar(36) NOT NULL,
-      `product_id` varchar(36) NOT NULL,
-      `quantity` bigint(20) NOT NULL,
-      `price` decimal(15,2) NOT NULL,
-      FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE,
-      FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    -- Create 'products' table
+    CREATE TABLE products (
+        id CHAR(36) PRIMARY KEY,
+        name VARCHAR(255) NOT NULL,
+        description TEXT,
+        price DECIMAL(10, 2) NOT NULL,
+        stock INT NOT NULL,
+        image_url TEXT,
+        seller_id CHAR(36),
+        category_id CHAR(36),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (seller_id) REFERENCES users(id),
+        FOREIGN KEY (category_id) REFERENCES categories(id)
+    );
 
-    CREATE TABLE IF NOT EXISTS `cart_items` (
-      `id` varchar(36) NOT NULL PRIMARY KEY,
-      `user_id` varchar(36) NOT NULL,
-      `product_id` varchar(36) NOT NULL,
-      `quantity` bigint(20) NOT NULL,
-      `created_at` datetime(3) DEFAULT CURRENT_TIMESTAMP(3),
-      `updated_at` datetime(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
-      FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-      FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    -- Create 'orders' table
+    CREATE TABLE orders (
+        id CHAR(36) PRIMARY KEY,
+        user_id CHAR(36) NOT NULL,
+        total_price DECIMAL(10, 2) NOT NULL,
+        status ENUM('pending', 'paid', 'processing', 'shipped', 'completed', 'cancelled') DEFAULT 'pending',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id)
+    );
 
-    CREATE TABLE IF NOT EXISTS `payments` (
-      `id` varchar(36) NOT NULL PRIMARY KEY,
-      `order_id` varchar(36) NOT NULL UNIQUE,
-      `amount` bigint(20) NOT NULL,
-      `snap_token` text NOT NULL,
-      `transaction_id` text,
-      `status` varchar(20) NOT NULL DEFAULT 'pending',
-      `created_at` datetime(3) DEFAULT CURRENT_TIMESTAMP(3),
-      `updated_at` datetime(3) DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
-      `deleted_at` datetime(3) DEFAULT NULL,
-      FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    -- Create 'order_items' table
+    CREATE TABLE order_items (
+        id CHAR(36) PRIMARY KEY,
+        order_id CHAR(36) NOT NULL,
+        product_id CHAR(36) NOT NULL,
+        quantity INT NOT NULL,
+        price DECIMAL(10, 2) NOT NULL,
+        status ENUM('pending', 'paid', 'processing', 'shipped', 'delivered', 'cancelled') DEFAULT 'pending',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (order_id) REFERENCES orders(id),
+        FOREIGN KEY (product_id) REFERENCES products(id)
+    );
 
-    CREATE TABLE IF NOT EXISTS `reviews` (
-      `id` varchar(36) NOT NULL PRIMARY KEY,
-      `user_id` varchar(36) NOT NULL,
-      `product_id` varchar(36) NOT NULL,
-      `rating` int(11) NOT NULL CHECK (`rating` >= 1 AND `rating` <= 5),
-      `comment` text,
-      `created_at` datetime(3) DEFAULT CURRENT_TIMESTAMP(3),
-      FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-      FOREIGN KEY (`product_id`) REFERENCES `products` (`id`) ON DELETE CASCADE
-    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    -- Create 'cart_items' table
+    CREATE TABLE cart_items (
+        id CHAR(36) PRIMARY KEY,
+        user_id CHAR(36) NOT NULL,
+        product_id CHAR(36) NOT NULL,
+        quantity INT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id),
+        FOREIGN KEY (product_id) REFERENCES products(id)
+    );
 
-    -- Insert default data
-    INSERT IGNORE INTO `users` (`id`, `name`, `email`, `password`, `role`, `created_at`, `updated_at`) VALUES
-    ('96ec37f4-a608-41ee-b942-5439f0294308', 'Default Buyer', 'buyer@ecommerce.local', '$2a$10$iamP.a/CF7qYQF9uri0N.eukdxEQ1NJB6xjOj..Mfx9.04OrR667y', 'buyer', NOW(), NOW()),
-    ('admin-user-id-123456789012345678901234', 'Admin User', 'admin@ecommerce.local', '$2a$10$iamP.a/CF7qYQF9uri0N.eukdxEQ1NJB6xjOj..Mfx9.04OrR667y', 'admin', NOW(), NOW()),
-    ('seller-user-id-12345678901234567890123', 'Test Seller', 'seller@ecommerce.local', '$2a$10$iamP.a/CF7qYQF9uri0N.eukdxEQ1NJB6xjOj..Mfx9.04OrR667y', 'seller', NOW(), NOW());
+    -- Create 'payments' table (dengan amount FLOAT)
+    CREATE TABLE payments (
+        id CHAR(36) PRIMARY KEY,
+        order_id CHAR(36) NOT NULL,
+        amount FLOAT NOT NULL,
+        snap_token VARCHAR(255) NOT NULL,
+        transaction_id VARCHAR(255),
+        status ENUM('pending', 'success', 'failed', 'expired', 'cancel') DEFAULT 'pending',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (order_id) REFERENCES orders(id)
+    );
 
-    INSERT IGNORE INTO `categories` (`id`, `name`) VALUES
-    ('cat-electronics-123456789012345678901234', 'Electronics'),
-    ('cat-clothing-1234567890123456789012345', 'Clothing'),
-    ('cat-books-12345678901234567890123456', 'Books'),
-    ('cat-home-123456789012345678901234567', 'Home & Garden');
+    -- Create 'reviews' table
+    CREATE TABLE reviews (
+        id CHAR(36) PRIMARY KEY,
+        user_id CHAR(36) NOT NULL,
+        product_id CHAR(36) NOT NULL,
+        rating INT NOT NULL,
+        comment TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id),
+        FOREIGN KEY (product_id) REFERENCES products(id)
+    );
 
-    /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-    /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
-    /*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
-    /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-    /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-    /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-    /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+    -- Seeder untuk tabel Users
+    INSERT INTO users (id, name, email, password, role, is_active, created_at, updated_at) VALUES
+    ('96ec37f4-a608-41ee-b942-5439f0294308', 'admin', 'admin123@gmail.com', 'admin123', 'admin', true, NOW(), NOW()),
+    ('812e2505-0ccf-4d5f-8c0a-78f3c4a64e90', 'ahkong', 'ahkong@gmail.com', 'seller123', 'seller', true, NOW(), NOW()),
+    ('def2a5e7-f253-4d5a-8dd3-ac0c5fe9c342', 'seluvis', 'seluvis@gmail.com', 'seller123', 'seller', true, NOW(), NOW());
+
+    -- Seeder untuk tabel Categories
+    INSERT INTO categories (id, name) VALUES
+    ('c0530a1c-8000-4566-8d9a-e95375b2275f', 'laptop'),
+    ('d49d2680-bf34-4d9f-bb89-c47db7724cf1', 'hp'),
+    ('ba03504c-bbf4-4b7a-bf64-b85d89c5f46f', 'spare-part'),
+    ('ce93cd22-90e3-47fe-9130-54bfb59095e0', 'accessories');
+
+    -- PRODUCTS
+    INSERT INTO products (id, name, description, price, stock, image_url, seller_id, category_id, created_at, updated_at)
+    VALUES 
+      ('7b03a3b4-3e0c-4d4b-9c01-b96b6d347a01', 'Laptop Asus ROG', 'Laptop gaming high performance untuk kebutuhan berat seperti editing dan gaming.', 25000000, 10,
+       'https://ssiayuddvhunioreofxl.supabase.co/storage/v1/object/public/product-image/LaptopROG.jpg',
+       (SELECT id FROM users WHERE email = 'ahkong@gmail.com'),
+       (SELECT id FROM categories WHERE name = 'laptop'),
+       NOW(), NOW()),
+
+      ('8480fd58-9032-4e93-8f88-7608c2b47e02', 'SSD 1TB', 'SSD SATA 2.5 inch dengan kapasitas 1TB cocok untuk upgrade storage laptop dan PC.', 1200000, 25,
+       'https://ssiayuddvhunioreofxl.supabase.co/storage/v1/object/public/product-image/SSD.jpeg',
+       (SELECT id FROM users WHERE email = 'ahkong@gmail.com'),
+       (SELECT id FROM categories WHERE name = 'spare-part'),
+       NOW(), NOW()),
+
+      ('b6ce7789-35f6-4e94-97ef-785a31f3d103', 'Soundcore R50i NC', 'TWS dengan Active Noise Cancelling dan battery life hingga 30 jam.', 800000, 30,
+       'https://ssiayuddvhunioreofxl.supabase.co/storage/v1/object/public/product-image/Soundcore%20R50i%20NC.webp',
+       (SELECT id FROM users WHERE email = 'seluvis@gmail.com'),
+       (SELECT id FROM categories WHERE name = 'accessories'),
+       NOW(), NOW()),
+
+      ('f083e6a2-c26d-4c68-9b84-f9f2edfc1504', 'Samsung S24 Ultra', 'Smartphone flagship terbaru dari Samsung dengan kamera dan performa luar biasa.', 20000000, 15,
+       'https://ssiayuddvhunioreofxl.supabase.co/storage/v1/object/public/product-image/SamsungS24Ultra.jpg',
+       (SELECT id FROM users WHERE email = 'seluvis@gmail.com'),
+       (SELECT id FROM categories WHERE name = 'hp'),
+       NOW(), NOW());
