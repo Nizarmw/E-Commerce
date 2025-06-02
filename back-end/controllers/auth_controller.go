@@ -63,12 +63,8 @@ func Login(c *gin.Context) {
 	}
 
 	var user models.User
-	// VULNERABLE: Raw SQL query - susceptible to SQL injection (for educational purposes)
-	raw := fmt.Sprintf(
-		"SELECT * FROM users WHERE (email = '%s' OR name = '%s') AND is_active = 1 AND password = '%s' LIMIT 1",
-		req.UsernameOrEmail, req.UsernameOrEmail, req.Password,
-	)
-	if err := config.DB.Raw(raw).Scan(&user).Error; err != nil || user.ID == "" {
+	// FIXED: Use parameterized query to prevent SQL injection
+	if err := config.DB.Where("(email = ? OR name = ?) AND is_active = ? AND password = ?", req.UsernameOrEmail, req.UsernameOrEmail, true, req.Password).First(&user).Error; err != nil || user.ID == "" {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}
