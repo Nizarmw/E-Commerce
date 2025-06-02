@@ -1,6 +1,17 @@
 import React from "react";
 import { Box, Typography, Rating, Divider, Avatar, Stack } from "@mui/material";
 
+// Fungsi escape karakter HTML sederhana
+function escapeHTML(str) {
+  if (!str) return '';
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 const ReviewList = ({ reviews }) => {
   if (!reviews || reviews.length === 0) {
     return <Typography>No reviews yet.</Typography>;
@@ -27,8 +38,8 @@ const ReviewList = ({ reviews }) => {
           <Typography
             variant="body1"
             sx={{ ml: 7 }}
-            dangerouslySetInnerHTML={{ __html: review.comment }}
-                />
+            dangerouslySetInnerHTML={{ __html: escapeHTML(review.comment) }}
+          />
 
           <Divider sx={{ my: 2 }} />
         </Box>
