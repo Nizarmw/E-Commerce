@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"golang.org/x/crypto/bcrypt"
 )
 
 func Register(c *gin.Context) {
@@ -38,6 +39,14 @@ func Register(c *gin.Context) {
 	}
 	user.IsActive = true // Set default active status
 
+	// FIX: Hash password before saving
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to hash password"})
+		return
+	}
+	user.Password = string(hashedPassword)
+
 	// Create user in database
 	if err := config.DB.Create(&user).Error; err != nil {
 		fmt.Printf("Database error during registration: %v\n", err)
@@ -63,8 +72,12 @@ func Login(c *gin.Context) {
 	}
 
 	var user models.User
-	// FIXED: Use parameterized query to prevent SQL injection
-	if err := config.DB.Where("(email = ? OR name = ?) AND is_active = ? AND password = ?", req.UsernameOrEmail, req.UsernameOrEmail, true, req.Password).First(&user).Error; err != nil || user.ID == "" {
+	// FIX: Query user by username/email only, then compare password hash
+	if err := config.DB.Where("(email = ? OR name = ?) AND is_active = ?", req.UsernameOrEmail, req.UsernameOrEmail, true).First(&user).Error; err != nil || user.ID == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+		return
+	}
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(req.Password)); err != nil {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
 		return
 	}
